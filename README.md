@@ -47,7 +47,7 @@ I have _only_ tested this with [unixODBC](https://www.unixodbc.org/) on Linux.
 I have not tested on Windows or Mac.
 If anyone does: I'd like to hear about it!
    
-Create or edit a `~/.odbcinst.ini file`
+Create or edit a `~/.odbcinst.ini` file.
 
 ```
 [odbcrs_sqlite]
