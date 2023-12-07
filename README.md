@@ -74,6 +74,24 @@ The Driver currently spews unconfigurable logs to the console, so you will see a
 Once `isql` has started the only command currently doing anything is `help` which lists the tables in the SQLite database.
 Also note: The program will log an error if your DB does not exist, but it will NOT (yet) fail as it should!
 
+## Development
+
+For me, the hardest part was understanding how the API works (and I still don't really) so I implemented stub methods for all (hopefully) ODBC methods and let them just print their name when called.
+This way, you can use a command line SQL client (e.g. `isql`) and just do things and monitor the calls it makes.
+
+I recommend doing just that if you want to learn how things work.
+
+Making a connection invokes these methods for example (again using `isql`, I assume others have a different sequence)
+- SQLAllocHandle: Allocates an Environment handle
+- SQLSetEnvAttr: Sets the ODBC version for the Environment
+- SQLGetEnvAttr: Gets the ODBC version for the Environment
+- SQLAllocHandle: Allocates a Connection handle in the Environment
+- SQLSetConnectAttr: Tells the Unicode driver that an ANSI application is talking to it
+- SQLConnectW: Asks the driver to make the actual connection
+
+What I'm doing is to check, which method I need next and implement a minimal solution just to get it going.
+I then come back later to implement more of the spec.
+
 ## Future / Help
 
 This is not an official Stackable product, and we have no immediate plans to develop this any further.
