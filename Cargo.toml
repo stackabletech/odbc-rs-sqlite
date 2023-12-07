@@ -1,0 +1,17 @@
+[package]
+authors = ["Stackable GmbH <info@stackable.tech>"]
+edition = "2021"
+license = "OSL-3.0"
+name = "odbc-driver-rs"
+repository = "https://github.com/stackabletech/odbc-rs-sqlite"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+num_enum = "0.7.1"
+odbc-sys = { path = "/home/lars/dev/external/odbc-sys", features = [] }
+rusqlite = { version = "0.30.0", features = ["bundled"] }
+snafu = "0.7.5"
+widestring = "1.0.2"
