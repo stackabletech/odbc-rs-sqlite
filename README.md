@@ -14,6 +14,10 @@ The APIs for ODBC are poorly documented and complicated and require a lot of FFI
 
 It aims for ODBC 3.8 support.
 ODBC 2.x is _NOT_ supported.
+
+This driver _only_ implements the Unicode version (UTF-16) of the methods.
+They have the suffix `W`.
+Driver Managers should automatically translate between Unicode and non-Unicode.
                                         
 ## Resources
 
