@@ -71,6 +71,9 @@ isql -3 test_connection -v
 
 The Driver currently spews unconfigurable logs to the console, so you will see all kinds of things on your console.
 
+Once `isql` has started the only command currently doing anything is `help` which lists the tables in the SQLite database.
+Also note: The program will log an error if your DB does not exist, but it will NOT (yet) fail as it should!
+
 ## Future / Help
 
 This is not an official Stackable product, and we have no immediate plans to develop this any further.
