@@ -225,6 +225,45 @@ Example connection sequence:
 - `src/odbc/utils.rs` - Core handle management patterns
 - Any files in `scripts/` directory - Build and test automation
 
+## 🌿 **Git Workflow**
+
+### **Development Branch Strategy:**
+```bash
+# For new features/fixes, create feature branches from main
+git checkout -b feature/test-database-setup
+git checkout -b fix/memory-leak-sqlfreehandle
+git checkout -b refactor/error-handling
+
+# For documentation/planning updates, work directly on main or use:
+git checkout -b docs/update-progress
+```
+
+### **Commit Guidelines:**
+- Commit frequently with descriptive messages focusing on "why" not "what"
+- Include progress updates in plan.md when completing major milestones
+- Use this format for commit messages:
+```
+Brief summary of changes (50 chars or less)
+
+- Detailed bullet points of what changed
+- Include file names for significant modifications
+- Note any test results or outcomes
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### **Branch Management:**
+- Keep main branch stable and deployable
+- Merge feature branches via commits (no complex merge strategies needed for experimental project)
+- Clean up merged branches to keep repository tidy
+
+### **Session Continuity:**
+- Always check current branch at session start: `git status`
+- Update plan.md progress markers before switching tasks
+- Commit current work before ending sessions to preserve context
+
 ### ⚠️ Critical Patterns to Maintain
 
 **Code Patterns:**
