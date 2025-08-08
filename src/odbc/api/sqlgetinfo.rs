@@ -261,7 +261,7 @@ mod tests {
         let mut value: u16 = 0; // Not enough space for a u32
         let result = SQLGetInfo(
             &mut connection as *mut ConnectionClass,
-            InfoType::MaxConcurrentActivities as u16, // Assuming this info_type should return a u32
+            InfoType::ScrollOptions as u16, // This info_type returns a u32
             &mut value as *mut u16 as *mut c_void,
             std::mem::size_of::<u16>() as i16, // too small!
             std::ptr::null_mut(),
@@ -304,7 +304,7 @@ mod tests {
     #[test]
     fn test_sqluinteger() {
         let mut connection = ConnectionClass {};
-        let info_type = InfoType::ActiveEnvironments;
+        let info_type = InfoType::ScrollOptions;
         let buffer_length = std::mem::size_of::<u32>() as i16;
         let mut string_length: i16 = 0;
         let mut buffer: [c_char; 4] = [0; 4];
