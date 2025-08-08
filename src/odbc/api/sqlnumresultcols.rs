@@ -5,7 +5,7 @@ use std::ffi::c_void;
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SQLNumResultCols(
+pub unsafe extern "C" fn SQLNumResultCols(
     statement_handle: *mut c_void,
     column_count_ptr: &mut i16,
 ) -> SqlReturn {
