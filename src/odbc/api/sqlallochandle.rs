@@ -4,19 +4,18 @@ use crate::odbc::implementation::alloc_handles::{
 };
 use crate::odbc::utils::{get_from_wrapper, wrap_and_set};
 use odbc_sys::{HandleType, Pointer, SmallInt, SqlReturn};
+use tracing::{info};
 
 /// SQLAllocHandle allocates an environment, connection, statement, or descriptor handle.
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLAllocHandle(
     handle_type: SmallInt,
     input_handle: Pointer,
     output_handle: *mut Pointer,
 ) -> SqlReturn {
-    println!(
-        "SQLAllocHandle DEBUG: handle_type={:?}, input_handle={:?}, output_handle={:?}",
-        handle_type, input_handle, output_handle
-    );
+    info!("SQLAllocHandle DEBUG: handle_type={:?}, input_handle={:?}, output_handle={:?}", handle_type, input_handle, output_handle);
+    println!("after logging");
 
     if output_handle.is_null() {
         println!("SQLAllocHandle ERROR: Output Handle is null");

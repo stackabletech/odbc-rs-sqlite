@@ -2,7 +2,7 @@ use odbc_sys::{Integer, Pointer, SqlReturn};
 use std::ffi::c_void;
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLSetConnectAttr(
     connection_handle: Pointer,
     attribute: Integer,

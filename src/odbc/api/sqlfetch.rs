@@ -3,7 +3,7 @@ use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{HandleType, Pointer, SqlReturn};
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLFetch(statement_handle: Pointer) -> SqlReturn {
     println!("SQLFetch INFO");
 

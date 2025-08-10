@@ -2,7 +2,7 @@ use odbc_sys::SqlReturn;
 use std::ffi::c_void;
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLDescribeCol(
     _statement_handle: *mut c_void,
     _column_number: u16,

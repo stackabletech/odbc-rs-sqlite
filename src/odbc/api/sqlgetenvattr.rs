@@ -4,7 +4,7 @@ use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{EnvironmentAttribute, HandleType, Integer, Pointer, SqlReturn};
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLGetEnvAttr(
     environment_handle: Pointer,
     attribute: Integer,

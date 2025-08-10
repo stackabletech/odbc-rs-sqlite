@@ -2,7 +2,7 @@ use odbc_sys::SqlReturn;
 use std::os::raw::c_void;
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLNativeSqlW(
     _connection_handle: *mut c_void,
     _in_statement_text: *mut u16,

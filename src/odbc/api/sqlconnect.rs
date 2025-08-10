@@ -19,7 +19,7 @@ use odbc_sys::{HandleType, SmallInt, SqlReturn, WChar};
 use std::ffi::c_void;
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLConnectW(
     connection_handle: *mut c_void,
     server_name: *const WChar,

@@ -5,7 +5,7 @@ use std::slice;
 const SQL_API_ODBC3_ALL_FUNCTIONS_SIZE: usize = 250;
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLGetFunctions(
     _connection_handle: *mut c_void,
     function_id: u16,

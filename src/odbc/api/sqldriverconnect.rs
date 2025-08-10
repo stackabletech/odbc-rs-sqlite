@@ -24,8 +24,8 @@ use std::ffi::c_void;
 /// This is the primary connection method used by most ODBC applications.
 /// It's more flexible than SQLConnect as it accepts a full connection string.
 #[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn SQLDriverConnectW(
+#[unsafe(no_mangle)]
+pub extern "C" fn SQLDriverConnectW(
     connection_handle: *mut c_void,
     _window_handle: *mut c_void, // HWND - unused in our case as we won't create any dialogs
     in_connection_string: *const WChar,

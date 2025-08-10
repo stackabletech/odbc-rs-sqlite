@@ -5,7 +5,7 @@ use odbc_sys::{CDataType, HandleType, SqlReturn};
 use std::ffi::{c_void, CString};
 
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn SQLGetData(
     statement_handle: *mut c_void,
     col_or_param_num: u16,

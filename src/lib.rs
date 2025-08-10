@@ -20,7 +20,8 @@ mod odbc;
     all(not(windows), feature = "static", feature = "iodbc"),
     link(name = "iodbcinst", kind = "static")
 )]
-extern "C" {
+// TODO: I can't remember why this is here and not in a spearate file like the others
+unsafe extern "C" {
     ///  Gets a list of names of values or data corresponding to a value of the system information.
     ///
     /// # Returns

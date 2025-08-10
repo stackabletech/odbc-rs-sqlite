@@ -5,7 +5,7 @@ use odbc_sys::{AttrOdbcVersion, EnvironmentAttribute, HandleType, Integer, Point
 
 ///  SQLSetEnvAttr sets attributes that govern aspects of environments.
 #[allow(non_snake_case)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn SQLSetEnvAttr(
     environment_handle: Pointer,
     attribute: Integer,
