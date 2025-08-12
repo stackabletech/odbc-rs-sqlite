@@ -1,5 +1,6 @@
 use odbc_sys::{Integer, Pointer, SqlReturn};
 use std::ffi::c_void;
+use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -9,15 +10,15 @@ pub extern "C" fn SQLSetConnectAttr(
     value_ptr: *mut c_void, // TODO maybe char?
     _str_length: Integer,
 ) -> SqlReturn {
-    println!("SQLSetConnectAttr DEBUG: attribute={}", attribute);
+    info!("attribute={}", attribute);
 
     if connection_handle.is_null() {
-        println!("SQLSetConnectAttr ERROR: Connection handle is null");
+        error!("Connection handle is null");
         return SqlReturn::INVALID_HANDLE;
     }
 
     if value_ptr.is_null() {
-        println!("SQLSetConnectAttr INFO: value_ptr is null");
+        info!("value_ptr is null");
         // TODO not everytime is an error, e.g. attribute 115
 
         /*

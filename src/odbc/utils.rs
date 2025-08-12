@@ -1,6 +1,6 @@
-use crate::odbc::utils::Error::Utf16Error;
 use crate::SQLGetPrivateProfileStringW;
-use odbc_sys::{HandleType, Pointer, NTS};
+use crate::odbc::utils::Error::Utf16Error;
+use odbc_sys::{HandleType, NTS, Pointer};
 use snafu::prelude::*;
 use std::ffi::c_void;
 use std::string::FromUtf16Error;

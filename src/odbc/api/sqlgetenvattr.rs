@@ -2,6 +2,7 @@ use crate::odbc::implementation::alloc_handles::EnvironmentHandle;
 use crate::odbc::implementation::env_attrs::get_odbc_version;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{EnvironmentAttribute, HandleType, Integer, Pointer, SqlReturn};
+use tracing::{debug, error};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -12,15 +13,15 @@ pub extern "C" fn SQLGetEnvAttr(
     _buffer_length: Integer, // There are no attributes which require returning a string
     _string_length_ptr: *mut Integer, // There are no attributes which require returning a string
 ) -> SqlReturn {
-    println!("SQLGetEnvAttr DEBUG: attribute={}", attribute);
+    debug!("attribute={}", attribute);
 
     if environment_handle.is_null() {
-        println!("SQLGetEnvAttr ERROR: Environment handle is null");
+        error!("Environment handle is null");
         return SqlReturn::INVALID_HANDLE;
     }
 
     if value_ptr.is_null() {
-        println!("SQLGetEnvAttr ERROR: value_ptr is null");
+        error!("value_ptr is null");
         // TODO
         return SqlReturn::ERROR;
     }
@@ -28,10 +29,7 @@ pub extern "C" fn SQLGetEnvAttr(
     let attribute = match EnvironmentAttribute::try_from(attribute) {
         Ok(attribute) => attribute,
         Err(_) => {
-            println!(
-                "SQLGetEnvAttr ERROR: The provided attribute is invalid: {}",
-                attribute
-            );
+            error!("The provided attribute is invalid: {}", attribute);
             // TODO set errors
             return SqlReturn::ERROR;
         }
@@ -40,7 +38,7 @@ pub extern "C" fn SQLGetEnvAttr(
     let env: &mut EnvironmentHandle = match get_from_wrapper(&HandleType::Env, environment_handle) {
         Ok(env) => env,
         Err(err) => {
-            println!("SQLSetEnvAttr ERROR: {}", err);
+            error!("{}", err);
             return SqlReturn::ERROR;
         }
     };

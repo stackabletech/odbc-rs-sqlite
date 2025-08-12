@@ -2,6 +2,7 @@ use crate::odbc::implementation::alloc_handles::StatementHandle;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{HandleType, SqlReturn};
 use std::ffi::c_void;
+use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -16,13 +17,16 @@ pub extern "C" fn SQLTablesW(
     _table_type: *const u16,
     table_type_length: i16,
 ) -> SqlReturn {
-    println!("SQLTablesW INFO: catalog_name_length={}, schema_name_length={}, table_name_length={}, table_type_length={}", catalog_name_length, schema_name_length, table_name_length, table_type_length);
+    info!(
+        "catalog_name_length={}, schema_name_length={}, table_name_length={}, table_type_length={}",
+        catalog_name_length, schema_name_length, table_name_length, table_type_length
+    );
 
     let statement_handle: &mut StatementHandle =
         match get_from_wrapper(&HandleType::Stmt, statement_handle) {
             Ok(env) => env,
             Err(err) => {
-                println!("SQLTablesW ERROR: {}", err);
+                error!("{}", err);
                 return SqlReturn::ERROR;
             }
         };

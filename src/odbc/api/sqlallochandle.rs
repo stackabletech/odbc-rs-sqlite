@@ -1,10 +1,11 @@
+use crate::logging;
 use crate::odbc::implementation::alloc_handles::{
-    allocate_stmt_handle, impl_allocate_dbc_handle, impl_allocate_environment_handle,
-    ConnectionHandle, EnvironmentHandle,
+    ConnectionHandle, EnvironmentHandle, allocate_stmt_handle, impl_allocate_dbc_handle,
+    impl_allocate_environment_handle,
 };
 use crate::odbc::utils::{get_from_wrapper, wrap_and_set};
 use odbc_sys::{HandleType, Pointer, SmallInt, SqlReturn};
-use tracing::{info};
+use tracing::{debug, error, info};
 
 /// SQLAllocHandle allocates an environment, connection, statement, or descriptor handle.
 #[allow(non_snake_case)]
@@ -14,19 +15,24 @@ pub extern "C" fn SQLAllocHandle(
     input_handle: Pointer,
     output_handle: *mut Pointer,
 ) -> SqlReturn {
-    info!("SQLAllocHandle DEBUG: handle_type={:?}, input_handle={:?}, output_handle={:?}", handle_type, input_handle, output_handle);
-    println!("after logging");
+    // Calling this at the "typical" entry points into the driver
+    logging::init_logging();
+
+    debug!(
+        "handle_type={:?}, input_handle={:?}, output_handle={:?}",
+        handle_type, input_handle, output_handle
+    );
 
     if output_handle.is_null() {
-        println!("SQLAllocHandle ERROR: Output Handle is null");
+        error!("Output Handle is null");
         return SqlReturn::INVALID_HANDLE;
     }
 
     let handle_type = match HandleType::try_from(handle_type) {
         Ok(handle_type) => handle_type,
         Err(_) => {
-            println!(
-                "SQLAllocHandle ERROR: The provided handle_type is invalid, can't set error details - {}",
+            error!(
+                "The provided handle_type is invalid, can't set error details - {}",
                 handle_type
             );
             return SqlReturn::ERROR;
@@ -40,7 +46,7 @@ pub extern "C" fn SQLAllocHandle(
         HandleType::Env => {
             // Spec: If HandleType is SQL_HANDLE_ENV, this is SQL_NULL_HANDLE.
             if !input_handle.is_null() {
-                println!("SQLAllocHandle ERROR: handle_type is Env but input_handle is not null");
+                error!("SQLAllocHandle ERROR: handle_type is Env but input_handle is not null");
                 return SqlReturn::ERROR;
             }
 
@@ -48,14 +54,14 @@ pub extern "C" fn SQLAllocHandle(
             let handle = impl_allocate_environment_handle();
             wrap_and_set(handle_type, handle, output_handle);
 
-            println!("SQLAllocHandle INFO: Successfully allocated an environment handle");
+            info!("Successfully allocated an environment handle");
 
             SqlReturn::SUCCESS
         }
         HandleType::Dbc => {
             // Spec: If HandleType is SQL_HANDLE_DBC, this must be an environment handle
             if input_handle.is_null() {
-                println!("SQLAllocHandle ERROR: handle_type is Dbc but input_handle is null");
+                error!("handle_type is Dbc but input_handle is null");
                 unsafe { *output_handle = std::ptr::null_mut() }
                 return SqlReturn::ERROR;
             }
@@ -67,7 +73,7 @@ pub extern "C" fn SQLAllocHandle(
                 match get_from_wrapper(&HandleType::Env, input_handle) {
                     Ok(env) => env,
                     Err(err) => {
-                        println!("SQLAllocHandle ERROR: {}", err);
+                        error!("Getting environment handle: {}", err);
                         unsafe { *output_handle = std::ptr::null_mut() }
                         return SqlReturn::ERROR;
                     }
@@ -76,7 +82,7 @@ pub extern "C" fn SQLAllocHandle(
             let handle = impl_allocate_dbc_handle(env_handle);
             wrap_and_set(handle_type, handle, output_handle);
 
-            println!("SQLAllocHandle INFO: Successfully allocated a Dbc handle");
+            info!("Successfully allocated a Dbc handle");
 
             SqlReturn::SUCCESS
         }
@@ -85,7 +91,7 @@ pub extern "C" fn SQLAllocHandle(
                 match get_from_wrapper(&HandleType::Dbc, input_handle) {
                     Ok(env) => env,
                     Err(err) => {
-                        println!("SQLAllocHandle ERROR: {}", err);
+                        info!("Getting connection handle: {}", err);
                         unsafe { *output_handle = std::ptr::null_mut() }
                         return SqlReturn::ERROR;
                     }
@@ -94,7 +100,7 @@ pub extern "C" fn SQLAllocHandle(
             let handle = allocate_stmt_handle(connection_handle);
             wrap_and_set(handle_type, handle, output_handle);
 
-            println!("SQLAllocHandle INFO: Successfully allocated a Stmt handle");
+            info!("Successfully allocated a Stmt handle");
 
             SqlReturn::SUCCESS
         }
@@ -102,7 +108,7 @@ pub extern "C" fn SQLAllocHandle(
         HandleType::DbcInfoToken => SqlReturn::SUCCESS,
     };
 
-    return result;
+    result
 }
 
 #[cfg(test)]

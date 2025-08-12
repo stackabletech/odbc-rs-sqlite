@@ -1,5 +1,6 @@
 use odbc_sys::SqlReturn;
 use std::ffi::c_void;
+use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -14,7 +15,7 @@ pub fn SQLStatisticsW(
     _unique: u16,
     _accuracy: u16,
 ) -> SqlReturn {
-    println!("SQLStatisticsW INFO");
+    info!("SQLStatisticsW");
     SqlReturn::SUCCESS
 }
 

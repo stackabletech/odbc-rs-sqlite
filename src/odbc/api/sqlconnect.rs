@@ -17,6 +17,7 @@ use crate::odbc::implementation::connect::impl_connect;
 use crate::odbc::utils::{get_from_wrapper, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SmallInt, SqlReturn, WChar};
 use std::ffi::c_void;
+use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -29,10 +30,10 @@ pub extern "C" fn SQLConnectW(
     authentication: *const WChar,
     authentication_length: SmallInt,
 ) -> SqlReturn {
-    println!("SQLConnectW INFO");
+    info!("SQLConnectW");
 
     if connection_handle.is_null() {
-        println!("SQLConnectW ERROR: connection_handle is null, can't set error details");
+        error!("connection_handle is null, can't set error details");
         return SqlReturn::INVALID_HANDLE;
     }
 
@@ -40,7 +41,7 @@ pub extern "C" fn SQLConnectW(
         match get_from_wrapper(&HandleType::Dbc, connection_handle) {
             Ok(env) => env,
             Err(e) => {
-                println!("SQLConnectW ERROR: {}", e);
+                error!("{}", e);
                 return SqlReturn::ERROR;
             }
         };
@@ -49,7 +50,7 @@ pub extern "C" fn SQLConnectW(
     let server_name = match maybe_utf16_to_string(server_name, server_name_length) {
         Some(result) => result,
         None => {
-            println!("SQLConnectW Error converting serverName");
+            error!("Error converting serverName");
             return SqlReturn::ERROR;
         }
     };

@@ -1,5 +1,6 @@
 use odbc_sys::SqlReturn;
 use std::ffi::c_void;
+use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -12,6 +13,6 @@ pub fn SQLTablePrivilegesW(
     _table_name: *const u16,
     _table_name_length: i16,
 ) -> SqlReturn {
-    println!("SQLTablePrivilegesW INFO");
+    info!("SQLTablePrivilegesW");
     SqlReturn::SUCCESS
 }

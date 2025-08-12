@@ -1,5 +1,6 @@
 use odbc_sys::SqlReturn;
 use std::ffi::c_void;
+use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -11,6 +12,6 @@ pub extern "C" fn SQLBrowseConnectW(
     _buffer_length: i16,
     _out_string_length: *mut i16,
 ) -> SqlReturn {
-    println!("SQLBrowseConnectW INFO");
+    info!("SQLBrowseConnectW");
     SqlReturn::SUCCESS
 }

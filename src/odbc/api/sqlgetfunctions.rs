@@ -1,6 +1,7 @@
 use odbc_sys::{SqlReturn, USmallInt};
 use std::ffi::c_void;
 use std::slice;
+use tracing::info;
 
 const SQL_API_ODBC3_ALL_FUNCTIONS_SIZE: usize = 250;
 
@@ -11,7 +12,7 @@ pub extern "C" fn SQLGetFunctions(
     function_id: u16,
     supported_ptr: &mut USmallInt,
 ) -> SqlReturn {
-    println!("SQLGetFunctions INFO: function_id: {}", function_id);
+    info!("function_id: {}", function_id);
 
     if function_id == 999 {
         let supported_array =

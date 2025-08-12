@@ -1,5 +1,6 @@
 use odbc_sys::SqlReturn;
 use std::ffi::c_void;
+use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -13,7 +14,7 @@ pub extern "C" fn SQLGetDiagRecW(
     _buffer_length: i16,
     _text_length_ptr: *mut i16,
 ) -> SqlReturn {
-    println!("SQLGetDiagRecW INFO: record_number={}", record_number);
+    info!("SQLGetDiagRecW INFO: record_number={}", record_number);
 
     // We don't have any diagnostic records implemented yet
     // Return NO_DATA to indicate no more records available

@@ -1,5 +1,6 @@
 use odbc_sys::SqlReturn;
 use std::ffi::c_void;
+use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -9,7 +10,7 @@ pub fn SQLSetPos(
     _operation: u64,
     _lock_type: u16,
 ) -> SqlReturn {
-    println!("SQLSetPos INFO");
+    info!("SQLSetPos");
     SqlReturn::SUCCESS
 }
 

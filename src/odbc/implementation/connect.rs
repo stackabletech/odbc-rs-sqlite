@@ -1,6 +1,7 @@
 use crate::odbc::implementation::alloc_handles::ConnectionHandle;
 use crate::odbc::utils::get_private_profile_string;
 use rusqlite::{Connection, OpenFlags};
+use tracing::{error, info};
 
 pub(crate) fn impl_connect(
     connection_handle: &mut ConnectionHandle,
@@ -11,15 +12,15 @@ pub(crate) fn impl_connect(
     let database = match get_private_profile_string(&server_name, "Database", "odbc.ini", 1024) {
         Ok(Some(dsn)) => dsn,
         Ok(None) => {
-            println!("Error: Database setting not found");
+            error!("Error: Database setting not found");
             "TODO".to_string()
         }
         Err(e) => {
-            println!("Error: Database setting not found: {}", e);
+            error!("Error: Database setting not found: {}", e);
             "TODO".to_string()
         }
     };
-    println!("Opening [{}] for DSN [{}]", database, server_name);
+    info!("Opening [{}] for DSN [{}]", database, server_name);
     let conn = match Connection::open_with_flags(
         database,
         OpenFlags::SQLITE_OPEN_READ_WRITE
@@ -28,7 +29,7 @@ pub(crate) fn impl_connect(
     ) {
         Ok(conn) => conn,
         Err(e) => {
-            println!("Connection failed: {}", e);
+            error!("Connection failed: {}", e);
             return;
         }
     };

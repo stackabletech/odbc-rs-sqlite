@@ -2,6 +2,7 @@ use crate::odbc::implementation::alloc_handles::EnvironmentHandle;
 use crate::odbc::implementation::env_attrs::set_odbc_version;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{AttrOdbcVersion, EnvironmentAttribute, HandleType, Integer, Pointer, SqlReturn};
+use tracing::{debug, error};
 
 ///  SQLSetEnvAttr sets attributes that govern aspects of environments.
 #[allow(non_snake_case)]
@@ -12,15 +13,15 @@ pub fn SQLSetEnvAttr(
     value_ptr: Pointer,
     _string_length: i32, // There are currently no attributes that take a String so this is actually unused
 ) -> SqlReturn {
-    println!("SQLSetEnvAttr DEBUG: attribute={}", attribute);
+    debug!("attribute={}", attribute);
 
     if environment_handle.is_null() {
-        println!("SQLSetEnvAttr ERROR: Environment handle is null");
+        error!("Environment handle is null");
         return SqlReturn::INVALID_HANDLE;
     }
 
     if value_ptr.is_null() {
-        println!("SQLSetEnvAttr ERROR: value_ptr is null");
+        error!("value_ptr is null");
         // TODO
         return SqlReturn::ERROR;
     }
@@ -28,10 +29,7 @@ pub fn SQLSetEnvAttr(
     let attribute = match EnvironmentAttribute::try_from(attribute) {
         Ok(attribute) => attribute,
         Err(_) => {
-            println!(
-                "SQLSetEnvAttr ERROR: The provided attribute is invalid: {}",
-                attribute
-            );
+            error!("The provided attribute is invalid: {}", attribute);
             // TODO set errors
             return SqlReturn::ERROR;
         }
@@ -40,7 +38,7 @@ pub fn SQLSetEnvAttr(
     let env: &mut EnvironmentHandle = match get_from_wrapper(&HandleType::Env, environment_handle) {
         Ok(env) => env,
         Err(err) => {
-            println!("SQLSetEnvAttr ERROR: {}", err);
+            error!("{}", err);
             return SqlReturn::ERROR;
         }
     };
@@ -54,10 +52,10 @@ pub fn SQLSetEnvAttr(
             let odbc_version = match AttrOdbcVersion::try_from(value) {
                 Ok(odbc_version) => odbc_version,
                 Err(_) => {
-                    println!(
-                                    "SQLSetEnvAttr ERROR: The provided ODBC version is invalid or not supported: {}",
-                                    value
-                                );
+                    error!(
+                        "The provided ODBC version is invalid or not supported: {}",
+                        value
+                    );
                     // TODO
                     return SqlReturn::ERROR;
                 }

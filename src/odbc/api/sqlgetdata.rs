@@ -2,7 +2,8 @@ use crate::odbc::implementation::alloc_handles::StatementHandle;
 use crate::odbc::implementation::getdata::impl_getdata;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{CDataType, HandleType, SqlReturn};
-use std::ffi::{c_void, CString};
+use std::ffi::{CString, c_void};
+use tracing::{debug, error, info, warn};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
@@ -14,20 +15,20 @@ pub extern "C" fn SQLGetData(
     buffer_length: isize,
     str_len_or_ind_ptr: *mut isize,
 ) -> SqlReturn {
-    println!("SQLGetData INFO");
+    info!("Getting data");
 
     let statement_handle: &mut StatementHandle =
         match get_from_wrapper(&HandleType::Stmt, statement_handle) {
             Ok(handle) => handle,
             Err(err) => {
-                println!("SQLGetData ERROR: {}", err);
+                error!("{}", err);
                 return SqlReturn::ERROR;
             }
         };
 
     if col_or_param_num == 0 {
         // TODO
-        println!("SQLGetData WARN: Bookmarks not supported yet");
+        warn!("Bookmarks not supported yet");
         return SqlReturn::ERROR;
     }
 
@@ -36,16 +37,16 @@ pub extern "C" fn SQLGetData(
     let target_type = match CDataType::try_from(target_type) {
         Ok(target_type) => target_type,
         Err(e) => {
-            println!(
-                "SQLGetData ERROR: Could not convert {} to valid target type: {}",
+            error!(
+                "Could not convert {} to valid target type: {}",
                 target_type, e
             );
             return SqlReturn::ERROR;
         }
     };
 
-    println!(
-        "SQLGetData DEBUG: Requested target_type: {:?}, col_or_param: {}",
+    debug!(
+        "Requested target_type: {:?}, col_or_param: {}",
         target_type, col_or_param_num
     );
 
@@ -55,7 +56,7 @@ pub extern "C" fn SQLGetData(
     let c_string = match CString::new(result) {
         Ok(string) => string,
         Err(_e) => {
-            println!("SQLGetInfo ERROR: Converting String to CString failed");
+            error!("Converting String to CString failed");
             return SqlReturn::ERROR;
             // TODO: Set error in connection_handle
         }

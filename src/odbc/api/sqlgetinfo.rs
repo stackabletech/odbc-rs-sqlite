@@ -2,6 +2,7 @@ use crate::connection::ConnectionClass;
 use crate::odbc::implementation::implementation::get_info;
 use odbc_sys::{InfoType, InfoTypeType, InfoTypeTypeInformation, Pointer, SmallInt, SqlReturn};
 use std::ffi::CString;
+use tracing::{error, info};
 
 const STRING_LENGTH_FOR_USMALLINT: i16 = std::mem::size_of::<u16>() as i16;
 const STRING_LENGTH_FOR_UINTEGER: i16 = std::mem::size_of::<u32>() as i16;
@@ -21,18 +22,18 @@ pub extern "C" fn SQLGetInfo(
     buffer_length: SmallInt,
     string_length_ptr: *mut SmallInt,
 ) -> SqlReturn {
-    println!(
-        "SQLGetInfo INFO: info_type={:?}, info_value_ptr={:?}, buffer_length={}, string_length_ptr={:?}",
+    info!(
+        "info_type={:?}, info_value_ptr={:?}, buffer_length={}, string_length_ptr={:?}",
         info_type, info_value_ptr, buffer_length, string_length_ptr
     );
 
     if connection_handle.is_null() {
-        println!("SQLGetInfo ERROR: connection_handle is null, can't set error details");
+        error!("connection_handle is null, can't set error details");
         return SqlReturn::INVALID_HANDLE;
     }
 
     if string_length_ptr.is_null() {
-        println!("SQLGetInfo ERROR: string_length_ptr is null");
+        error!("string_length_ptr is null");
         // TODO: Set error in connection_handle
         return SqlReturn::ERROR;
     }
@@ -40,10 +41,7 @@ pub extern "C" fn SQLGetInfo(
     let info_type = match InfoType::try_from(info_type) {
         Ok(info_type) => info_type,
         Err(_) => {
-            println!(
-                "SQLGetInfo ERROR: The provided info_type is invalid - {}",
-                info_type
-            );
+            error!("The provided info_type is invalid - {}", info_type);
             // TODO: Set error in connection_handle
             return SqlReturn::ERROR;
         }
@@ -54,13 +52,13 @@ pub extern "C" fn SQLGetInfo(
     match info_type.return_type() {
         InfoTypeTypeInformation::SqlUSmallInt => {
             if (info_value_ptr as usize) % std::mem::align_of::<u16>() != 0 {
-                println!("SQLGetInfo ERROR: Alignment of info_value_ptr is wrong (u16)");
+                error!("Alignment of info_value_ptr is wrong (u16)");
                 return SqlReturn::ERROR;
             }
         }
         InfoTypeTypeInformation::SqlUInteger => {
             if (info_value_ptr as usize) % std::mem::align_of::<u32>() != 0 {
-                println!("SQLGetInfo ERROR: Alignment of info_value_ptr is wrong (u32)");
+                error!("Alignment of info_value_ptr is wrong (u32)");
                 return SqlReturn::ERROR;
             }
         }
@@ -80,7 +78,7 @@ pub extern "C" fn SQLGetInfo(
             let c_string = match CString::new(result) {
                 Ok(string) => string,
                 Err(_e) => {
-                    println!("SQLGetInfo ERROR: Converting String to CString failed");
+                    error!("Converting String to CString failed");
                     return SqlReturn::ERROR;
                     // TODO: Set error in connection_handle
                 }
@@ -393,7 +391,6 @@ mod tests {
         let rust_string = c_string.to_string_lossy();
         assert_eq!(rust_string, "N");
 
-        println!("INVALID");
         let invalid_info_type: u16 = 12345;
         let mut connection = ConnectionClass {};
         let buffer_length = 15;

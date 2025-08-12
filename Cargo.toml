@@ -9,12 +9,43 @@ version = "0.1.0"
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+# Default configuration: dynamic linking with unixODBC on Unix systems
+default = []
+
+# Cross-platform ODBC linking options:
+# Use these features to control which ODBC library to link against
+
+# Link statically against ODBC libraries instead of dynamically
+# Useful for creating self-contained binaries without runtime dependencies
+# Examples:
+#   cargo build --features static           # Static unixODBC on Unix
+#   cargo build --features static,iodbc     # Static iODBC on Unix
+static = []
+
+# Use iODBC instead of unixODBC on Unix systems
+# iODBC is an alternative ODBC implementation, commonly used on macOS
+# Examples:
+#   cargo build --features iodbc            # Dynamic iODBC
+#   cargo build --features static,iodbc     # Static iODBC
+iodbc = []
+
+# ODBC version-specific features (for future compatibility):
+# These are currently unused but defined to prevent cfg warnings
+# They could be used to enable version-specific ODBC functionality
+
+# Enable ODBC 3.50 specific features
+odbc_version_3_50 = []
+
+# Enable ODBC 4.0 specific features
+odbc_version_4 = []
+
 [dependencies]
-num_enum = "0.7.1"
 odbc-sys = { git = "https://github.com/lfrancke/odbc-sys.git", branch = "stackable" }
-rusqlite = { version = "0.32.1", features = ["bundled"] }
-snafu = "0.7.5"
-widestring = "1.0.2"
+rusqlite = { version = "0.37.0", features = ["bundled"] }
+snafu = "0.8.6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 [dev-dependencies]
-odbc-api = "14.2.1"
+odbc-api = "14.3.0"

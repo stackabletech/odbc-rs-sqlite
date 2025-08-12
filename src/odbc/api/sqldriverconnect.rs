@@ -18,6 +18,7 @@ use crate::odbc::implementation::connect::impl_connect;
 use crate::odbc::utils::{get_from_wrapper, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SmallInt, SqlReturn, USmallInt, WChar};
 use std::ffi::c_void;
+use tracing::{debug, error, info};
 
 /// SQLDriverConnect establishes connections to a driver and a data source using a connection string
 ///
@@ -35,13 +36,13 @@ pub extern "C" fn SQLDriverConnectW(
     string_length2_ptr: *mut SmallInt,
     driver_completion: USmallInt,
 ) -> SqlReturn {
-    println!(
-        "SQLDriverConnectW INFO: connection_string_length={}, buffer_length={}, driver_completion={}",
+    info!(
+        "connection_string_length={}, buffer_length={}, driver_completion={}",
         string_length1, buffer_length, driver_completion
     );
 
     if connection_handle.is_null() {
-        println!("SQLDriverConnectW ERROR: connection_handle is null, can't set error details");
+        error!("SQLDriverConnectW ERROR: connection_handle is null, can't set error details");
         return SqlReturn::INVALID_HANDLE;
     }
 
@@ -49,7 +50,7 @@ pub extern "C" fn SQLDriverConnectW(
         match get_from_wrapper(&HandleType::Dbc, connection_handle) {
             Ok(conn) => conn,
             Err(e) => {
-                println!("SQLDriverConnectW ERROR: {}", e);
+                error!("Error getting connection handle {}", e);
                 return SqlReturn::ERROR;
             }
         };
@@ -58,12 +59,12 @@ pub extern "C" fn SQLDriverConnectW(
     let connection_string = match maybe_utf16_to_string(in_connection_string, string_length1) {
         Some(result) => result,
         None => {
-            println!("SQLDriverConnectW ERROR: Failed to convert connection string");
+            error!("Failed to convert connection string");
             return SqlReturn::ERROR;
         }
     };
 
-    println!("SQLDriverConnectW DEBUG: Connection string: {}", connection_string);
+    debug!("Connection string: {}", connection_string);
 
     // TODO: Parse connection string properly (DSN=..., Database=..., etc.)
     // For now, just extract database path from a simple connection string
@@ -83,7 +84,7 @@ pub extern "C" fn SQLDriverConnectW(
 
     match database_path {
         Some(db_path) => {
-            println!("SQLDriverConnectW INFO: Connecting to database: {}", db_path);
+            info!("Connecting to database: {}", db_path);
 
             // Use existing connection logic
             impl_connect(connection_handle, db_path, None, None);
@@ -98,11 +99,11 @@ pub extern "C" fn SQLDriverConnectW(
                 }
             }
 
-            println!("SQLDriverConnectW SUCCESS: Connection established");
+            info!("Connection established");
             SqlReturn::SUCCESS
         }
         None => {
-            println!("SQLDriverConnectW ERROR: Missing required 'Database=' parameter in connection string");
+            error!("Missing required 'Database=' parameter in connection string");
             SqlReturn::ERROR
         }
     }
