@@ -1,5 +1,5 @@
 //!
-//! https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqldriverconnect-function
+//! <https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqldriverconnect-function>
 //!
 //! ```c
 //! SQLRETURN SQLDriverConnect(
@@ -18,7 +18,7 @@ use crate::odbc::implementation::connect::impl_connect;
 use crate::odbc::utils::{get_from_wrapper, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SmallInt, SqlReturn, USmallInt, WChar};
 use std::ffi::c_void;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 /// SQLDriverConnect establishes connections to a driver and a data source using a connection string
 ///
@@ -64,7 +64,8 @@ pub extern "C" fn SQLDriverConnectW(
         }
     };
 
-    debug!("Connection string: {}", connection_string);
+    println!("Connection string: {}", connection_string);
+    //println!("Connection string parts: {:#?}", connection_string.split(';').collect::<Vec<_>>());
 
     // TODO: Parse connection string properly (DSN=..., Database=..., etc.)
     // For now, just extract database path from a simple connection string
@@ -81,6 +82,7 @@ pub extern "C" fn SQLDriverConnectW(
         // No database specified - this is an error
         None
     };
+    println!("DEBUG: database_path result: {:?}", database_path);
 
     match database_path {
         Some(db_path) => {

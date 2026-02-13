@@ -1,5 +1,5 @@
 //!
-//! https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlconnect-function?view=sql-server-ver16
+//! <https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlconnect-function?view=sql-server-ver16>
 //!
 //! ```c
 //! SQLRETURN SQLConnect(

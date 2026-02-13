@@ -10,25 +10,21 @@ mod odbc;
 
 // Windows: Use the built-in Windows ODBC library
 #[cfg_attr(windows, link(name = "odbc32"))]
-
 // Unix + Dynamic + unixODBC (default case for Linux)
 #[cfg_attr(
     all(not(windows), not(feature = "static"), not(feature = "iodbc")),
     link(name = "odbcinst")
 )]
-
 // Unix + Static + unixODBC (for self-contained binaries)
 #[cfg_attr(
     all(not(windows), feature = "static", not(feature = "iodbc")),
     link(name = "odbcinst", kind = "static")
 )]
-
 // Unix + Dynamic + iODBC (common on macOS)
 #[cfg_attr(
     all(not(windows), not(feature = "static"), feature = "iodbc"),
     link(name = "iodbcinst")
 )]
-
 // Unix + Static + iODBC (self-contained binaries with iODBC)
 #[cfg_attr(
     all(not(windows), feature = "static", feature = "iodbc"),

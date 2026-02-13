@@ -9,7 +9,7 @@ const STRING_LENGTH_FOR_UINTEGER: i16 = std::mem::size_of::<u32>() as i16;
 
 /// Returns general information about the driver and data source associated with a connection
 ///
-/// https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetinfo-function
+/// <https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetinfo-function>
 ///
 /// # Returns
 /// `SUCCESS`, `SUCCESS_WITH_INFO`, `ERROR`, or `INVALID_HANDLE`

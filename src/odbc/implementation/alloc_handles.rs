@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use odbc_sys::AttrOdbcVersion;
 use rusqlite::{Connection, Row, Rows, Statement};
 
@@ -38,7 +39,9 @@ pub(crate) fn impl_allocate_dbc_handle(_env_handle: &mut EnvironmentHandle) -> C
     }
 }
 
-pub(crate) fn allocate_stmt_handle(connection_handle: &mut ConnectionHandle) -> StatementHandle<'_> {
+pub(crate) fn allocate_stmt_handle(
+    connection_handle: &mut ConnectionHandle,
+) -> StatementHandle<'_> {
     let connection_ref = connection_handle.sqlite_connection.as_ref().unwrap();
     StatementHandle {
         sqlite_connection: connection_ref,
