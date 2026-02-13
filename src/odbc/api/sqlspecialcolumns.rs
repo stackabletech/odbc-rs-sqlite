@@ -2,7 +2,7 @@ use odbc_sys::SqlReturn;
 use std::ffi::c_void;
 use tracing::info;
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, clippy::too_many_arguments)]
 #[unsafe(no_mangle)]
 pub fn SQLSpecialColumnsW(
     _statement_handle: *mut c_void,

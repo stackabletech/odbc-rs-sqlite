@@ -30,7 +30,6 @@ mod odbc;
     all(not(windows), feature = "static", feature = "iodbc"),
     link(name = "iodbcinst", kind = "static")
 )]
-
 // This function is here because it's needed for ODBC configuration file parsing
 // but doesn't exist in the standard odbc-sys crate.
 // It was added here directly temporarily, eventually this might move to a separate file or library.

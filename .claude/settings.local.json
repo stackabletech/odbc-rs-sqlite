@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(cargo test:*)",
-      "Bash(./scripts/setup-test-db.sh:*)"
-    ],
-    "deny": []
-  }
-}

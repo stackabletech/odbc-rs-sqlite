@@ -103,7 +103,7 @@ pub extern "C" fn SQLColAttributeW(
             // Return column name
             match stmt.column_name(col_index) {
                 Ok(name) => return_string_attribute(
-                    &name,
+                    name,
                     character_attribute_ptr,
                     buffer_length,
                     string_length_ptr,
@@ -172,7 +172,7 @@ pub extern "C" fn SQLColAttributeW(
             // Return column label (same as name for SQLite)
             match stmt.column_name(col_index) {
                 Ok(name) => return_string_attribute(
-                    &name,
+                    name,
                     character_attribute_ptr,
                     buffer_length,
                     string_length_ptr,

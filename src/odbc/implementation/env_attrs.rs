@@ -7,5 +7,5 @@ pub(crate) fn set_odbc_version(env: &mut EnvironmentHandle, odbc_version: AttrOd
 }
 
 pub(crate) fn get_odbc_version(env: &EnvironmentHandle) -> AttrOdbcVersion {
-    env.odbc_version.clone()
+    env.odbc_version
 }
