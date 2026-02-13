@@ -97,7 +97,14 @@ pub extern "C" fn SQLAllocHandle(
                     }
                 };
 
-            let handle = allocate_stmt_handle(connection_handle);
+            let handle = match allocate_stmt_handle(connection_handle) {
+                Some(handle) => handle,
+                None => {
+                    error!("Cannot allocate statement handle: no active connection");
+                    unsafe { *output_handle = std::ptr::null_mut() }
+                    return SqlReturn::ERROR;
+                }
+            };
             wrap_and_set(handle_type, handle, output_handle);
 
             info!("Successfully allocated a Stmt handle");

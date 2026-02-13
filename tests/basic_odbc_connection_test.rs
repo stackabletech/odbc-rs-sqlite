@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 use odbc_api::buffers::TextRowSet;
-use odbc_api::{ConnectionOptions, Cursor, Environment};
+use odbc_api::{
+    ColumnDescription, ConnectionOptions, Cursor, DataType, Environment, Nullability,
+    ResultSetMetadata,
+};
+use std::num::NonZeroUsize;
 use std::process::Command;
 
 /// Basic ODBC connection test using odbc-api crate
@@ -134,6 +138,50 @@ fn test_multiple_connections() {
 
     drop(conn2);
     println!("✅ Second connection closed successfully");
+}
+
+#[test]
+fn test_describe_columns() {
+    let env = Environment::new().expect("Failed to create ODBC environment");
+
+    let connection = env
+        .connect("test_connection", "", "", ConnectionOptions::default())
+        .expect("Failed to connect to database");
+
+    // Execute a query so we have a result set with known columns
+    let mut cursor = connection
+        .execute(
+            "SELECT name FROM sqlite_master WHERE type='table'",
+            (),
+            None,
+        )
+        .expect("Failed to execute query")
+        .expect("Expected a cursor for SELECT statement");
+
+    // Describe column 1 (the "name" column)
+    let mut col_desc = ColumnDescription::default();
+    cursor
+        .describe_col(1, &mut col_desc)
+        .expect("Failed to describe column 1");
+
+    let col_name = col_desc
+        .name_to_string()
+        .expect("Failed to decode column name");
+    println!(
+        "Column 1 name: '{}', data_type: {:?}, nullable: {:?}",
+        col_name, col_desc.data_type, col_desc.nullability
+    );
+
+    assert_eq!(col_name, "name");
+    assert_eq!(
+        col_desc.data_type,
+        DataType::Varchar {
+            length: NonZeroUsize::new(255)
+        }
+    );
+    assert_eq!(col_desc.nullability, Nullability::Nullable);
+
+    println!("describe_columns test passed");
 }
 
 #[test]

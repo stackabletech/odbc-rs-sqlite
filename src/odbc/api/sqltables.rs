@@ -31,18 +31,30 @@ pub extern "C" fn SQLTablesW(
             }
         };
 
-    // Assuming `statement_handle` is mutable and has fields for storing `stmt` and `rows`
-    let stmt = statement_handle
+    // Prepare the query to list tables
+    let stmt = match statement_handle
         .sqlite_connection
         .prepare("SELECT name FROM sqlite_master WHERE type='table'")
-        .unwrap();
+    {
+        Ok(stmt) => stmt,
+        Err(err) => {
+            error!("Failed to prepare table listing query: {}", err);
+            return SqlReturn::ERROR;
+        }
+    };
     statement_handle.statement = Some(stmt);
 
     if let Some(ref mut stmt) = statement_handle.statement {
-        statement_handle.rows = Some(stmt.query([]).unwrap());
+        match stmt.query([]) {
+            Ok(rows) => {
+                statement_handle.rows = Some(rows);
+            }
+            Err(err) => {
+                error!("Failed to execute table listing query: {}", err);
+                return SqlReturn::ERROR;
+            }
+        }
     }
-
-    //let catalog_name = maybe_utf16_to_string(catalog_name, catalog_name_length).unwrap_or("DEFAULT".to_string());
 
     SqlReturn::SUCCESS
 }

@@ -105,9 +105,10 @@
 - [ ] **Fix StatementHandle lifetime issues** (`src/odbc/implementation/alloc_handles.rs:24-29`)
   - Replace raw references with proper ownership patterns
   - Ensure statements don't outlive connections
-- [ ] **Remove all `.unwrap()` from FFI functions** 
-  - Replace with proper error return codes
-  - Add error logging without panicking
+- [DONE - 2026-02-13] **Remove all `.unwrap()` from FFI functions**
+  - SOLUTION: Replaced 3 `.unwrap()` calls in FFI code with proper error handling
+  - FILES: Modified src/odbc/api/sqltables.rs (prepare/query unwraps → match with SqlReturn::ERROR), src/odbc/implementation/alloc_handles.rs (allocate_stmt_handle returns Option), src/odbc/api/sqlallochandle.rs (handles None from allocate_stmt_handle)
+  - OUTCOME: No more panics possible from FFI code; all errors return SqlReturn::ERROR with logging
 
 ### **Phase 2: Robustness & Completeness**
 *Goal: Production-ready error handling and core functionality*
@@ -127,6 +128,11 @@
   - Implement proper handle deallocation based on handle type
   - Free both `HandleWrapper` and inner objects
   - Add comprehensive tests
+- [DONE - 2026-02-13] **SQLDescribeColW implementation**
+  - SOLUTION: Full implementation returning column name (UTF-16), data type (SQL_VARCHAR), column size (255), decimal digits (0), nullable (SQL_NULLABLE)
+  - FILES: Rewrote src/odbc/api/sqldescribecol.rs, added test_describe_columns integration test
+  - ALSO: Enabled `wide` feature on odbc-api dev-dependency for proper Unicode ODBC client testing, discovered `cargo build` is needed before integration tests (cdylib loaded at runtime by DM)
+  - KEY INSIGHT: ODBC spec for SQLDescribeColW uses character counts (not byte counts) for buffer_length and name_length_ptr
 - [ ] **SQLDriverConnect implementation**
   - Parse connection strings properly
   - Support standard SQLite connection parameters
