@@ -50,8 +50,8 @@ pub extern "C" fn SQLDriverConnectW(
         match get_from_wrapper(&HandleType::Dbc, connection_handle) {
             Ok(conn) => conn,
             Err(e) => {
-                error!("Error getting connection handle {}", e);
-                return SqlReturn::ERROR;
+                error!("Failed to get connection handle: {}", e);
+                return SqlReturn::INVALID_HANDLE;
             }
         };
 

@@ -38,8 +38,8 @@ pub extern "C" fn SQLGetEnvAttr(
     let env: &mut EnvironmentHandle = match get_from_wrapper(&HandleType::Env, environment_handle) {
         Ok(env) => env,
         Err(err) => {
-            error!("{}", err);
-            return SqlReturn::ERROR;
+            error!("Failed to get environment handle: {}", err);
+            return SqlReturn::INVALID_HANDLE;
         }
     };
 

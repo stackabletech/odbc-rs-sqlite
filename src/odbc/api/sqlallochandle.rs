@@ -73,9 +73,9 @@ pub extern "C" fn SQLAllocHandle(
                 match get_from_wrapper(&HandleType::Env, input_handle) {
                     Ok(env) => env,
                     Err(err) => {
-                        error!("Getting environment handle: {}", err);
+                        error!("Failed to get environment handle: {}", err);
                         unsafe { *output_handle = std::ptr::null_mut() }
-                        return SqlReturn::ERROR;
+                        return SqlReturn::INVALID_HANDLE;
                     }
                 };
 
@@ -91,9 +91,9 @@ pub extern "C" fn SQLAllocHandle(
                 match get_from_wrapper(&HandleType::Dbc, input_handle) {
                     Ok(env) => env,
                     Err(err) => {
-                        info!("Getting connection handle: {}", err);
+                        error!("Failed to get connection handle: {}", err);
                         unsafe { *output_handle = std::ptr::null_mut() }
-                        return SqlReturn::ERROR;
+                        return SqlReturn::INVALID_HANDLE;
                     }
                 };
 
