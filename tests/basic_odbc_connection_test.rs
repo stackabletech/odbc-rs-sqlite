@@ -13,7 +13,6 @@ use std::process::Command;
 /// to our driver through the standard ODBC client stack.
 
 const CONNECTION_STRING: &str = "DSN=test_connection";
-//const CONNECTION_STRING: &str = "Driver=/home/andrew/gitrepos/odbc-rs-sqlite/target/debug/libodbc_driver_rs.so;Database=/home/andrew/gitrepos/odbc-rs-sqlite/test_odbc.sqlite";
 
 /// Set up test environment by building driver and configuring ODBC
 fn setup_test_environment() -> std::result::Result<(), Box<dyn std::error::Error>> {
