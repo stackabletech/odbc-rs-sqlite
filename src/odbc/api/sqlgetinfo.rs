@@ -1,7 +1,9 @@
-use crate::connection::ConnectionClass;
-use crate::odbc::implementation::implementation::get_info;
-use odbc_sys::{InfoType, InfoTypeType, InfoTypeTypeInformation, Pointer, SmallInt, SqlReturn};
-use std::ffi::CString;
+use crate::odbc::handles::ConnectionHandle;
+use crate::odbc::utils::get_from_wrapper;
+use odbc_sys::{
+    HandleType, InfoType, InfoTypeType, InfoTypeTypeInformation, Pointer, SmallInt, SqlReturn,
+};
+use std::ffi::{CString, c_void};
 use tracing::{error, info};
 
 const STRING_LENGTH_FOR_USMALLINT: i16 = std::mem::size_of::<u16>() as i16;
@@ -16,7 +18,7 @@ const STRING_LENGTH_FOR_UINTEGER: i16 = std::mem::size_of::<u32>() as i16;
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
 pub extern "C" fn SQLGetInfo(
-    connection_handle: *mut ConnectionClass,
+    connection_handle: *mut c_void,
     info_type: u16,
     info_value_ptr: Pointer,
     buffer_length: SmallInt,
@@ -31,6 +33,15 @@ pub extern "C" fn SQLGetInfo(
         error!("connection_handle is null, can't set error details");
         return SqlReturn::INVALID_HANDLE;
     }
+
+    let connection_handle: &mut ConnectionHandle =
+        match get_from_wrapper(&HandleType::Dbc, connection_handle) {
+            Ok(h) => h,
+            Err(e) => {
+                error!("Failed to get connection handle: {}", e);
+                return SqlReturn::INVALID_HANDLE;
+            }
+        };
 
     if string_length_ptr.is_null() {
         error!("string_length_ptr is null");
@@ -68,8 +79,12 @@ pub extern "C" fn SQLGetInfo(
     // TODO: Check buffer_length if info_value_ptr is not null and info_type type is a character string
     // TODO: Unicode variant needs to check if buffer_length is even number, if not -> HY0900
 
-    let result =
-        get_info(info_type).map_or(info_type.return_type().not_supported_value(), |value| value);
+    let result = match connection_handle.connection.as_ref() {
+        Some(conn) => conn
+            .get_info(info_type)
+            .map_or_else(|| info_type.return_type().not_supported_value(), |v| v),
+        None => info_type.return_type().not_supported_value(),
+    };
 
     // buffer_length is ignored for anything that's not a string as per the specification
     match result {
@@ -145,8 +160,34 @@ pub extern "C" fn SQLGetInfo(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::odbc::handles::ConnectionHandle;
+    use crate::odbc::utils::wrap_and_set;
+    use odbc_sys::HandleType;
     use std::ffi::CStr;
     use std::os::raw::{c_char, c_void};
+
+    /// Create a disconnected (no active DB) connection handle pointer suitable for
+    /// tests that only exercise the SQLGetInfo error-path logic (null ptr, bad args, etc.).
+    fn make_disconnected_dbc_ptr() -> Pointer {
+        let ch = ConnectionHandle { connection: None };
+        let mut ptr: Pointer = std::ptr::null_mut();
+        wrap_and_set(HandleType::Dbc, ch, &mut ptr);
+        ptr
+    }
+
+    /// Create a connected in-memory SQLite connection handle pointer.
+    fn make_connected_dbc_ptr() -> Pointer {
+        crate::init_driver();
+        let conn = crate::odbc::handles::factory()
+            .create_from_path(":memory:")
+            .unwrap();
+        let ch = ConnectionHandle {
+            connection: Some(conn),
+        };
+        let mut ptr: Pointer = std::ptr::null_mut();
+        wrap_and_set(HandleType::Dbc, ch, &mut ptr);
+        ptr
+    }
 
     #[test]
     fn test_null_connection_handle() {
@@ -162,9 +203,9 @@ mod tests {
 
     #[test]
     fn test_nullstring_length_ptr() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_disconnected_dbc_ptr();
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             InfoType::MaxDriverConnections as u16,
             std::ptr::null_mut(),
             2,
@@ -176,28 +217,22 @@ mod tests {
 
     #[test]
     fn test_invalid_info_type() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_disconnected_dbc_ptr();
         let string_length_ptr = &mut 0;
-        let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
-            9999,
-            std::ptr::null_mut(),
-            2,
-            string_length_ptr,
-        );
+        let result = SQLGetInfo(dbc, 9999, std::ptr::null_mut(), 2, string_length_ptr);
         assert_eq!(result, SqlReturn::ERROR);
         // TODO: Once implemented check that the correct error type is returned
     }
 
     #[test]
     fn test_valid_info_type_usmallint() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let mut value: u16 = 0;
         let mut string_length: i16 = 0;
         let buffer_length = std::mem::size_of_val(&value) as i16;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             InfoType::ActiveEnvironments as u16,
             &mut value as *mut u16 as *mut c_void,
             buffer_length,
@@ -211,12 +246,12 @@ mod tests {
 
     #[test]
     fn test_valid_info_type_string() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let mut buffer = vec![0u8; 256];
         let mut string_length: i16 = 0;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             InfoType::UserName as u16,
             buffer.as_mut_ptr() as *mut c_void,
             buffer.len() as i16,
@@ -233,12 +268,12 @@ mod tests {
 
     #[test]
     fn test_string_truncation() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let mut buffer = vec![0u8; 3];
         let mut string_length: i16 = 0;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             InfoType::UserName as u16,
             buffer.as_mut_ptr() as *mut c_void,
             buffer.len() as i16,
@@ -254,30 +289,35 @@ mod tests {
     }
 
     #[test]
-    fn test_insufficient_buffer_for_integer() {
-        let mut connection = ConnectionClass {};
-        let mut value: u16 = 0; // Not enough space for a u32
+    fn buffer_length_is_ignored_for_non_string_types() {
+        // ODBC spec: buffer_length is ignored for non-string info types.
+        // Passing a u16 buffer for a u32 info type is therefore not an error as long
+        // as the pointer alignment is correct.
+        let dbc = make_disconnected_dbc_ptr();
+        let mut value: u32 = 0;
+        let mut string_length: i16 = 0;
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
-            InfoType::ScrollOptions as u16, // This info_type returns a u32
-            &mut value as *mut u16 as *mut c_void,
-            std::mem::size_of::<u16>() as i16, // too small!
-            std::ptr::null_mut(),
+            dbc,
+            InfoType::ScrollOptions as u16,
+            &mut value as *mut u32 as *mut c_void,
+            std::mem::size_of::<u16>() as i16, // too small, but spec says it's ignored
+            &mut string_length,
         );
-        assert_eq!(result, SqlReturn::ERROR); // or whatever error code you return for insufficient space
+        assert_eq!(result, SqlReturn::SUCCESS);
     }
 
     #[test]
     fn test_bad_alignment() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_disconnected_dbc_ptr();
         let mut buffer = vec![0u8; 256];
+        let mut string_length: i16 = 0;
         let result = unsafe {
             SQLGetInfo(
-                &mut connection as *mut ConnectionClass,
+                dbc,
                 InfoType::ActiveEnvironments as u16,
-                (buffer.as_mut_ptr().offset(1)) as *mut c_void, // misaligned
+                (buffer.as_mut_ptr().offset(1)) as *mut c_void, // deliberately misaligned
                 buffer.len() as i16,
-                std::ptr::null_mut(),
+                &mut string_length,
             )
         };
         assert_eq!(result, SqlReturn::ERROR);
@@ -286,10 +326,10 @@ mod tests {
 
     #[test]
     fn test_null_info_value_ptr() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let mut string_length: i16 = 0;
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             InfoType::ActiveEnvironments as u16,
             std::ptr::null_mut(),
             0,
@@ -301,7 +341,7 @@ mod tests {
 
     #[test]
     fn test_sqluinteger() {
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let info_type = InfoType::ScrollOptions;
         let buffer_length = std::mem::size_of::<u32>() as i16;
         let mut string_length: i16 = 0;
@@ -309,7 +349,7 @@ mod tests {
         let info_value_ptr: *mut c_void = buffer.as_mut_ptr() as *mut c_void;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             info_type as u16,
             info_value_ptr,
             buffer_length,
@@ -323,7 +363,7 @@ mod tests {
     #[test]
     fn test_sql_get_info() {
         // Test case: SQLUSMALLINT case
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let info_type = InfoType::ActiveEnvironments;
         let buffer_length = 2;
         let mut string_length: i16 = 0;
@@ -331,7 +371,7 @@ mod tests {
         let info_value_ptr: *mut c_void = buffer.as_mut_ptr() as *mut c_void;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             info_type as u16,
             info_value_ptr,
             buffer_length,
@@ -346,7 +386,7 @@ mod tests {
         }
 
         // Test case: String case for an InfoType that is not implemented
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let info_type = InfoType::DescribeParameter;
         let buffer_length = 15;
         let mut string_length: i16 = 0;
@@ -354,7 +394,7 @@ mod tests {
         let info_value_ptr: *mut c_void = buffer.as_mut_ptr() as *mut c_void;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             info_type as u16,
             info_value_ptr,
             buffer_length,
@@ -369,7 +409,7 @@ mod tests {
         assert_eq!(rust_string, "N");
 
         // Test case: String case for a string that is too long
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let info_type = InfoType::DescribeParameter;
         let buffer_length = 15;
         let mut string_length: i16 = 0;
@@ -377,7 +417,7 @@ mod tests {
         let info_value_ptr: *mut c_void = buffer.as_mut_ptr() as *mut c_void;
 
         let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
+            dbc,
             info_type as u16,
             info_value_ptr,
             buffer_length,
@@ -392,9 +432,9 @@ mod tests {
         assert_eq!(rust_string, "N");
 
         let invalid_info_type: u16 = 12345;
-        let mut connection = ConnectionClass {};
+        let dbc = make_connected_dbc_ptr();
         let buffer_length = 15;
-        //let mut string_length: i16 = 0;
+        let mut string_length: i16 = 0;
         let mut buffer: [c_char; 15] = [0; 15];
 
         unsafe {
@@ -405,33 +445,12 @@ mod tests {
             let info_value_ptr: *mut c_void = buffer.as_mut_ptr() as *mut c_void;
 
             let _result = SQLGetInfo(
-                &mut connection as *mut ConnectionClass,
+                dbc,
                 invalid_bar as u16,
                 info_value_ptr,
                 buffer_length,
-                //&mut string_length as *mut i16,
-                0 as *mut i16,
+                &mut string_length as *mut i16,
             );
         }
-
-        /*
-        // Test case 2: String case with insufficient buffer length
-        let buffer_length = 5;
-        let mut string_length: i16 = 0;
-        let mut buffer: [c_char; 5] = [0; 5];
-        let info_value_ptr: *mut c_void = buffer.as_mut_ptr() as *mut c_void;
-
-        let result = SQLGetInfo(
-            &mut connection as *mut ConnectionClass,
-            info_type,
-            info_value_ptr,
-            buffer_length,
-            &mut string_length as *mut i16,
-        );
-
-        assert_eq!(result, SqlReturn::ERROR); // Buffer too small
-
-
-         */
     }
 }

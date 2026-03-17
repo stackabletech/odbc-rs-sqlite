@@ -5,4 +5,5 @@ pub(crate) mod env_attrs;
 pub(crate) mod getdata;
 #[allow(clippy::module_inception)]
 pub(crate) mod implementation;
+pub(crate) mod query;
 pub(crate) mod tables;

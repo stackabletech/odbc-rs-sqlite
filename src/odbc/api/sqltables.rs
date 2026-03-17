@@ -1,5 +1,4 @@
-use crate::odbc::implementation::alloc_handles::StatementHandle;
-use crate::odbc::implementation::tables::impl_get_tables;
+use crate::odbc::handles::StatementHandle;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{HandleType, SqlReturn};
 use std::ffi::c_void;
@@ -32,8 +31,11 @@ pub extern "C" fn SQLTablesW(
             }
         };
 
-    match impl_get_tables(statement_handle) {
-        Ok(()) => SqlReturn::SUCCESS,
+    match statement_handle.connection.get_tables() {
+        Ok(stmt) => {
+            statement_handle.active_statement = Some(stmt);
+            SqlReturn::SUCCESS
+        }
         Err(err) => {
             error!("impl_get_tables failed: {}", err);
             SqlReturn::ERROR

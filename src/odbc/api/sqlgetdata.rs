@@ -1,5 +1,4 @@
-use crate::odbc::implementation::alloc_handles::StatementHandle;
-use crate::odbc::implementation::getdata::impl_getdata;
+use crate::odbc::handles::StatementHandle;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{CDataType, HandleType, SqlReturn};
 use std::ffi::{CString, c_void};
@@ -27,15 +26,12 @@ pub extern "C" fn SQLGetData(
         };
 
     if col_or_param_num == 0 {
-        // TODO
         warn!("Bookmarks not supported yet");
         return SqlReturn::ERROR;
     }
 
-    // TODO: Have a generic way to check if the requested column is even in range
-
     let target_type = match CDataType::try_from(target_type) {
-        Ok(target_type) => target_type,
+        Ok(t) => t,
         Err(e) => {
             error!(
                 "Could not convert {} to valid target type: {}",
@@ -50,40 +46,46 @@ pub extern "C" fn SQLGetData(
         target_type, col_or_param_num
     );
 
-    let result = impl_getdata(statement_handle, &target_type, col_or_param_num);
+    let stmt = match &statement_handle.active_statement {
+        Some(stmt) => stmt,
+        None => {
+            error!("No active statement; call SQLFetch first");
+            return SqlReturn::ERROR;
+        }
+    };
 
-    // TODO: Make sure to handle encoding properly here, not sure how
+    let col_index = (col_or_param_num - 1) as usize;
+    let result = match stmt.get_data(col_index, target_type) {
+        Ok(value) => value,
+        Err(err) => {
+            error!("get_data failed: {}", err);
+            return SqlReturn::ERROR;
+        }
+    };
+
     let c_string = match CString::new(result) {
-        Ok(string) => string,
-        Err(_e) => {
+        Ok(s) => s,
+        Err(_) => {
             error!("Converting String to CString failed");
             return SqlReturn::ERROR;
-            // TODO: Set error in connection_handle
         }
     };
 
     let c_string_bytes_with_nul = c_string.as_bytes_with_nul();
-    let c_string_len = c_string_bytes_with_nul.len() - 1; // Exclude the null terminator to get the actual length of the string.
+    let c_string_len = c_string_bytes_with_nul.len() - 1;
 
-    // Calculate the final string length to be used in the operation.
-    let final_string_length = std::cmp::min(c_string_len, buffer_length as usize - 1); // Leave space for the null byte
+    let final_string_length = std::cmp::min(c_string_len, buffer_length as usize - 1);
 
     unsafe {
-        // Copy the appropriate slice of the string based on the calculated length.
         std::ptr::copy_nonoverlapping(
             c_string_bytes_with_nul.as_ptr(),
             target_value_ptr as *mut u8,
             final_string_length,
         );
 
-        // Cast the `c_void` pointer to a `u8` pointer before dereferencing.
-        // This is safe because we know the original data structure is a u8 buffer.
         let null_terminator_ptr = target_value_ptr.cast::<u8>().add(final_string_length);
-
-        // Add the null terminator at the right position.
         *null_terminator_ptr = 0;
 
-        // Set the string length excluding the null terminator.
         *str_len_or_ind_ptr = final_string_length as isize;
     }
 

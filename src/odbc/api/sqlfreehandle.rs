@@ -1,6 +1,4 @@
-use crate::odbc::implementation::alloc_handles::{
-    ConnectionHandle, EnvironmentHandle, StatementHandle,
-};
+use crate::odbc::handles::{ConnectionHandle, EnvironmentHandle, StatementHandle};
 use crate::odbc::utils::{HandleWrapper, tag_for_handle};
 use odbc_sys::{HandleType, SqlReturn};
 use std::ffi::c_void;

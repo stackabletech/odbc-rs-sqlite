@@ -1,8 +1,5 @@
 use crate::logging;
-use crate::odbc::implementation::alloc_handles::{
-    ConnectionHandle, EnvironmentHandle, allocate_stmt_handle, impl_allocate_dbc_handle,
-    impl_allocate_environment_handle,
-};
+use crate::odbc::handles::{ConnectionHandle, EnvironmentHandle};
 use crate::odbc::utils::{get_from_wrapper, wrap_and_set};
 use odbc_sys::{HandleType, Pointer, SmallInt, SqlReturn};
 use tracing::{debug, error, info};
@@ -50,8 +47,10 @@ pub extern "C" fn SQLAllocHandle(
                 return SqlReturn::ERROR;
             }
 
-            // Call the implementation and convert the output properly
-            let handle = impl_allocate_environment_handle();
+            // Register the SQLite factory on first use.
+            crate::init_driver();
+
+            let handle = EnvironmentHandle::default();
             wrap_and_set(handle_type, handle, output_handle);
 
             info!("Successfully allocated an environment handle");
@@ -79,7 +78,8 @@ pub extern "C" fn SQLAllocHandle(
                     }
                 };
 
-            let handle = impl_allocate_dbc_handle(env_handle);
+            let handle = ConnectionHandle { connection: None };
+            let _ = env_handle; // env_handle validated above; connection state lives in the handle
             wrap_and_set(handle_type, handle, output_handle);
 
             info!("Successfully allocated a Dbc handle");
@@ -97,7 +97,7 @@ pub extern "C" fn SQLAllocHandle(
                     }
                 };
 
-            let handle = match allocate_stmt_handle(connection_handle) {
+            let handle = match connection_handle.allocate_stmt_handle() {
                 Some(handle) => handle,
                 None => {
                     error!("Cannot allocate statement handle: no active connection");

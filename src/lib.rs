@@ -1,8 +1,15 @@
 use odbc_sys::{Integer, WChar};
 
-mod connection;
 mod logging;
 mod odbc;
+
+/// Registers the SQLite implementation with the driver's handle factory.
+/// Called once at driver startup (from SQLAllocHandle for environment handles).
+pub(crate) fn init_driver() {
+    odbc::handles::register_factory(Box::new(
+        odbc::implementation::query::SqliteDbConnectionFactory,
+    ));
+}
 
 // Cross-platform ODBC library linking configuration
 // These attributes handle the complexity of linking against different ODBC implementations

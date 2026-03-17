@@ -1,5 +1,4 @@
-use crate::odbc::implementation::alloc_handles::StatementHandle;
-use crate::odbc::implementation::columns::impl_get_columns;
+use crate::odbc::handles::StatementHandle;
 use crate::odbc::utils::{get_from_wrapper, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SqlReturn};
 use std::ffi::c_void;
@@ -39,8 +38,11 @@ pub extern "C" fn SQLColumnsW(
 
     debug!("Getting columns for table: {}", table_name);
 
-    match impl_get_columns(statement_handle, &table_name) {
-        Ok(()) => SqlReturn::SUCCESS,
+    match statement_handle.connection.get_columns(&table_name) {
+        Ok(stmt) => {
+            statement_handle.active_statement = Some(stmt);
+            SqlReturn::SUCCESS
+        }
         Err(err) => {
             error!("impl_get_columns failed: {}", err);
             SqlReturn::ERROR

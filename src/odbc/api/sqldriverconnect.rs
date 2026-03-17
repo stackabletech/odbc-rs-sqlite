@@ -13,8 +13,7 @@
 //!      SQLUSMALLINT    DriverCompletion);
 //! ```
 
-use crate::odbc::implementation::alloc_handles::ConnectionHandle;
-use crate::odbc::implementation::connect::impl_connect_to_database;
+use crate::odbc::handles::{ConnectionHandle, factory};
 use crate::odbc::utils::{get_from_wrapper, get_private_profile_string, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SmallInt, SqlReturn, USmallInt, WChar};
 use std::ffi::c_void;
@@ -117,16 +116,23 @@ pub extern "C" fn SQLDriverConnectW(
         Some(db_path) => {
             info!("Connecting to database: {}", db_path);
 
-            // Open the database directly — DSN resolution already happened above
-            impl_connect_to_database(connection_handle, db_path);
+            match factory().create_from_path(&db_path) {
+                Ok(conn) => {
+                    connection_handle.connection = Some(conn);
+                }
+                Err(e) => {
+                    error!("Failed to open database '{}': {}", db_path, e);
+                    return SqlReturn::ERROR;
+                }
+            }
 
             // TODO: Copy connection string to output buffer if provided
-            if !out_connection_string.is_null() && buffer_length > 0 {
-                // For now, just indicate that we're not filling the output buffer
-                if !string_length2_ptr.is_null() {
-                    unsafe {
-                        *string_length2_ptr = 0;
-                    }
+            if !out_connection_string.is_null()
+                && buffer_length > 0
+                && !string_length2_ptr.is_null()
+            {
+                unsafe {
+                    *string_length2_ptr = 0;
                 }
             }
 

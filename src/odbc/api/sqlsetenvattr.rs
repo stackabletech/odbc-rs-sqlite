@@ -1,5 +1,4 @@
-use crate::odbc::implementation::alloc_handles::EnvironmentHandle;
-use crate::odbc::implementation::env_attrs::set_odbc_version;
+use crate::odbc::handles::EnvironmentHandle;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{AttrOdbcVersion, EnvironmentAttribute, HandleType, Integer, Pointer, SqlReturn};
 use tracing::{debug, error};
@@ -61,7 +60,7 @@ pub fn SQLSetEnvAttr(
                 }
             };
 
-            set_odbc_version(env, odbc_version);
+            env.set_odbc_version(odbc_version);
         }
         EnvironmentAttribute::ConnectionPooling => {
             // TODO: This is implemented in the driver manager, not the driver
