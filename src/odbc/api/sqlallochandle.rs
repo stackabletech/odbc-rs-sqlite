@@ -42,7 +42,7 @@ pub extern "C" fn SQLAllocHandle(
     // From the spec:
     // When allocating a handle other than an environment handle, if SQLAllocHandle returns SQL_ERROR, it sets OutputHandlePtr to SQL_NULL_HDBC, SQL_NULL_HSTMT, or SQL_NULL_HDESC, depending on the value of HandleType, unless the output argument is a null pointer.
     // The application can then obtain additional information from the diagnostic data structure associated with the handle in the InputHandle argument.
-    let result = match handle_type {
+    match handle_type {
         HandleType::Env => {
             // Spec: If HandleType is SQL_HANDLE_ENV, this is SQL_NULL_HANDLE.
             if !input_handle.is_null() {
@@ -73,9 +73,9 @@ pub extern "C" fn SQLAllocHandle(
                 match get_from_wrapper(&HandleType::Env, input_handle) {
                     Ok(env) => env,
                     Err(err) => {
-                        error!("Getting environment handle: {}", err);
+                        error!("Failed to get environment handle: {}", err);
                         unsafe { *output_handle = std::ptr::null_mut() }
-                        return SqlReturn::ERROR;
+                        return SqlReturn::INVALID_HANDLE;
                     }
                 };
 
@@ -91,13 +91,20 @@ pub extern "C" fn SQLAllocHandle(
                 match get_from_wrapper(&HandleType::Dbc, input_handle) {
                     Ok(env) => env,
                     Err(err) => {
-                        info!("Getting connection handle: {}", err);
+                        error!("Failed to get connection handle: {}", err);
                         unsafe { *output_handle = std::ptr::null_mut() }
-                        return SqlReturn::ERROR;
+                        return SqlReturn::INVALID_HANDLE;
                     }
                 };
 
-            let handle = allocate_stmt_handle(connection_handle);
+            let handle = match allocate_stmt_handle(connection_handle) {
+                Some(handle) => handle,
+                None => {
+                    error!("Cannot allocate statement handle: no active connection");
+                    unsafe { *output_handle = std::ptr::null_mut() }
+                    return SqlReturn::ERROR;
+                }
+            };
             wrap_and_set(handle_type, handle, output_handle);
 
             info!("Successfully allocated a Stmt handle");
@@ -106,9 +113,7 @@ pub extern "C" fn SQLAllocHandle(
         }
         HandleType::Desc => SqlReturn::SUCCESS,
         HandleType::DbcInfoToken => SqlReturn::SUCCESS,
-    };
-
-    result
+    }
 }
 
 #[cfg(test)]

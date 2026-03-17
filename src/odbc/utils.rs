@@ -14,6 +14,7 @@ const DESC_TAG: i32 = 108498290;
 const DBC_INFO_TOKEN_TAG: i32 = 983280932;
 
 #[derive(Debug, Snafu)]
+#[allow(clippy::enum_variant_names)]
 pub enum Error {
     #[snafu(display("SQLGetPrivateProfileStringW returned a negative value: {ret}"))]
     UnknownError { ret: i32 },
@@ -61,13 +62,13 @@ pub fn get_from_wrapper<'a, T>(
     ensure!(
         !wrapper_pointer.is_null(),
         NullPointerSnafu {
-            handle_type: handle_type.clone()
+            handle_type: *handle_type
         }
     );
 
     let in_wrapper: &HandleWrapper = unsafe { &*(wrapper_pointer as *const HandleWrapper) };
 
-    let tag = tag_for_handle(&handle_type);
+    let tag = tag_for_handle(handle_type);
     ensure!(
         in_wrapper.tag == tag,
         InvalidTagSnafu {

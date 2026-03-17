@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /// Extended C Types range 4000 and above. Range of -100 thru 200 is reserved by Driver Manager.
 /// `SQL_C_TYPES_EXTENDED`.
 pub const C_TYPES_EXTENDED: i16 = 0x04000;
@@ -82,5 +83,5 @@ pub enum CDataType {
 
 #[cfg(windows)]
 pub use CDataType::ULong as UBigInt;
-#[cfg(not(windows))]
-pub use CDataType::ULong as Bookmark;
+//#[cfg(not(windows))]
+//pub use CDataType::ULong as Bookmark;

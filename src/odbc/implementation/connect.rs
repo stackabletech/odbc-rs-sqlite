@@ -3,6 +3,8 @@ use crate::odbc::utils::get_private_profile_string;
 use rusqlite::{Connection, OpenFlags};
 use tracing::{error, info};
 
+/// Connect via DSN name — looks up Database from ODBC configuration.
+/// Used by SQLConnectW.
 pub(crate) fn impl_connect(
     connection_handle: &mut ConnectionHandle,
     server_name: String,
@@ -21,8 +23,17 @@ pub(crate) fn impl_connect(
         }
     };
     info!("Opening [{}] for DSN [{}]", database, server_name);
+    impl_connect_to_database(connection_handle, database);
+}
+
+/// Connect directly to a database file path.
+/// Used by SQLDriverConnectW after resolving the database path.
+pub(crate) fn impl_connect_to_database(
+    connection_handle: &mut ConnectionHandle,
+    database_path: String,
+) {
     let conn = match Connection::open_with_flags(
-        database,
+        &database_path,
         OpenFlags::SQLITE_OPEN_READ_WRITE
             | OpenFlags::SQLITE_OPEN_URI
             | OpenFlags::SQLITE_OPEN_NO_MUTEX,

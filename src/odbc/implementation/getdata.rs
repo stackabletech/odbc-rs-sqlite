@@ -45,7 +45,7 @@ pub(crate) fn impl_getdata(
                 ValueRef::Blob(b) => {
                     // Convert blob to hex string representation
                     b.iter()
-                        .map(|byte| format!("{:02x}", byte))
+                        .map(|byte| format!("{byte:02x}"))
                         .collect::<String>()
                 }
             }
@@ -101,7 +101,7 @@ pub(crate) fn impl_getdata(
                 },
                 ValueRef::Blob(b) => b
                     .iter()
-                    .map(|byte| format!("{:02x}", byte))
+                    .map(|byte| format!("{byte:02x}"))
                     .collect::<String>(),
             }
         }

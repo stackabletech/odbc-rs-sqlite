@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use odbc_sys::{SqlReturn, USmallInt};
 use std::ffi::c_void;
 use std::slice;

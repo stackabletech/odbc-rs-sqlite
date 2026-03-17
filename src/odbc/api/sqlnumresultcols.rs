@@ -27,8 +27,8 @@ pub unsafe extern "C" fn SQLNumResultCols(
         match get_from_wrapper(&HandleType::Stmt, statement_handle) {
             Ok(handle) => handle,
             Err(err) => {
-                error!("{}", err);
-                return SqlReturn::ERROR;
+                error!("Failed to get statement handle: {}", err);
+                return SqlReturn::INVALID_HANDLE;
             }
         };
 

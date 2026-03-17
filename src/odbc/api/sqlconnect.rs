@@ -1,5 +1,5 @@
 //!
-//! https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlconnect-function?view=sql-server-ver16
+//! <https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlconnect-function?view=sql-server-ver16>
 //!
 //! ```c
 //! SQLRETURN SQLConnect(
@@ -41,8 +41,8 @@ pub extern "C" fn SQLConnectW(
         match get_from_wrapper(&HandleType::Dbc, connection_handle) {
             Ok(env) => env,
             Err(e) => {
-                error!("{}", e);
-                return SqlReturn::ERROR;
+                error!("Failed to get connection handle: {}", e);
+                return SqlReturn::INVALID_HANDLE;
             }
         };
 

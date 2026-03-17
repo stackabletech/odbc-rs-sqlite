@@ -1,4 +1,5 @@
 use crate::odbc::implementation::alloc_handles::StatementHandle;
+use crate::odbc::implementation::tables::impl_get_tables;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{HandleType, SqlReturn};
 use std::ffi::c_void;
@@ -24,25 +25,18 @@ pub extern "C" fn SQLTablesW(
 
     let statement_handle: &mut StatementHandle =
         match get_from_wrapper(&HandleType::Stmt, statement_handle) {
-            Ok(env) => env,
+            Ok(handle) => handle,
             Err(err) => {
-                error!("{}", err);
-                return SqlReturn::ERROR;
+                error!("Failed to get statement handle: {}", err);
+                return SqlReturn::INVALID_HANDLE;
             }
         };
 
-    // Assuming `statement_handle` is mutable and has fields for storing `stmt` and `rows`
-    let stmt = statement_handle
-        .sqlite_connection
-        .prepare("SELECT name FROM sqlite_master WHERE type='table'")
-        .unwrap();
-    statement_handle.statement = Some(stmt);
-
-    if let Some(ref mut stmt) = statement_handle.statement {
-        statement_handle.rows = Some(stmt.query([]).unwrap());
+    match impl_get_tables(statement_handle) {
+        Ok(()) => SqlReturn::SUCCESS,
+        Err(err) => {
+            error!("impl_get_tables failed: {}", err);
+            SqlReturn::ERROR
+        }
     }
-
-    //let catalog_name = maybe_utf16_to_string(catalog_name, catalog_name_length).unwrap_or("DEFAULT".to_string());
-
-    SqlReturn::SUCCESS
 }

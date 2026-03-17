@@ -1,5 +1,5 @@
 //!
-//! https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqldriverconnect-function
+//! <https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqldriverconnect-function>
 //!
 //! ```c
 //! SQLRETURN SQLDriverConnect(
@@ -14,11 +14,11 @@
 //! ```
 
 use crate::odbc::implementation::alloc_handles::ConnectionHandle;
-use crate::odbc::implementation::connect::impl_connect;
-use crate::odbc::utils::{get_from_wrapper, maybe_utf16_to_string};
+use crate::odbc::implementation::connect::impl_connect_to_database;
+use crate::odbc::utils::{get_from_wrapper, get_private_profile_string, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SmallInt, SqlReturn, USmallInt, WChar};
 use std::ffi::c_void;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 /// SQLDriverConnect establishes connections to a driver and a data source using a connection string
 ///
@@ -50,8 +50,8 @@ pub extern "C" fn SQLDriverConnectW(
         match get_from_wrapper(&HandleType::Dbc, connection_handle) {
             Ok(conn) => conn,
             Err(e) => {
-                error!("Error getting connection handle {}", e);
-                return SqlReturn::ERROR;
+                error!("Failed to get connection handle: {}", e);
+                return SqlReturn::INVALID_HANDLE;
             }
         };
 
@@ -64,7 +64,8 @@ pub extern "C" fn SQLDriverConnectW(
         }
     };
 
-    debug!("Connection string: {}", connection_string);
+    println!("Connection string: {connection_string}");
+    //println!("Connection string parts: {:#?}", connection_string.split(';').collect::<Vec<_>>());
 
     // TODO: Parse connection string properly (DSN=..., Database=..., etc.)
     // For now, just extract database path from a simple connection string
@@ -77,17 +78,47 @@ pub extern "C" fn SQLDriverConnectW(
             .find(|part| part.starts_with("Database="))
             .and_then(|part| part.strip_prefix("Database="))
             .map(|path| path.trim().to_string())
+    } else if connection_string.contains("DSN=") {
+        // Resolve Database from DSN configuration
+        let dsn = connection_string
+            .split(';')
+            .find(|part| part.starts_with("DSN="))
+            .and_then(|part| part.strip_prefix("DSN="))
+            .map(|s| s.trim().to_string());
+
+        if let Some(dsn_name) = dsn {
+            match get_private_profile_string(&dsn_name, "Database", "odbc.ini", 1024) {
+                Ok(Some(db)) => {
+                    info!("Resolved Database={} from DSN={}", db, dsn_name);
+                    Some(db)
+                }
+                Ok(None) => {
+                    error!(
+                        "DSN '{}' found but no Database setting configured",
+                        dsn_name
+                    );
+                    None
+                }
+                Err(e) => {
+                    error!("Failed to look up DSN '{}': {}", dsn_name, e);
+                    None
+                }
+            }
+        } else {
+            None
+        }
     } else {
         // No database specified - this is an error
         None
     };
+    println!("DEBUG: database_path result: {database_path:?}");
 
     match database_path {
         Some(db_path) => {
             info!("Connecting to database: {}", db_path);
 
-            // Use existing connection logic
-            impl_connect(connection_handle, db_path, None, None);
+            // Open the database directly — DSN resolution already happened above
+            impl_connect_to_database(connection_handle, db_path);
 
             // TODO: Copy connection string to output buffer if provided
             if !out_connection_string.is_null() && buffer_length > 0 {
