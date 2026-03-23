@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetConnectAttrW(
+pub extern "system" fn SQLGetConnectAttrW(
     _connection_handle: *mut c_void,
     _attribute: i32,
     _value_ptr: *mut c_void,

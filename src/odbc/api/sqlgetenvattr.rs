@@ -5,7 +5,7 @@ use tracing::{debug, error};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetEnvAttr(
+pub extern "system" fn SQLGetEnvAttr(
     environment_handle: Pointer,
     attribute: Integer,
     value_ptr: Pointer,

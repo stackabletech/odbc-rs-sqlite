@@ -8,7 +8,7 @@ use tracing::{debug, error, info};
 /// SQLDescribeColW returns the result descriptor for one column in the result set.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLDescribeColW(
+pub extern "system" fn SQLDescribeColW(
     statement_handle: *mut c_void,
     column_number: u16,
     column_name: *mut u16,

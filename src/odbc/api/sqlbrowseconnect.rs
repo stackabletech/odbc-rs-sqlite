@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLBrowseConnectW(
+pub extern "system" fn SQLBrowseConnectW(
     _connection_handle: *mut c_void,
     _in_connection_string: *const u16,
     _in_string_length: i16,

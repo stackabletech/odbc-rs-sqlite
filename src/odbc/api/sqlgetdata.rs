@@ -6,7 +6,7 @@ use tracing::{debug, error, info, warn};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetData(
+pub extern "system" fn SQLGetData(
     statement_handle: *mut c_void,
     col_or_param_num: u16,
     target_type: i16,

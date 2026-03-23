@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLSetDescRecW(
+pub extern "system" fn SQLSetDescRecW(
     _descriptor_handle: *mut c_void,
     _rec_number: i16,
     _desc_type: i16,

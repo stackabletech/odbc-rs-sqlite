@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLNumParams(
+pub extern "system" fn SQLNumParams(
     _statement_handle: *mut c_void,
     _parameter_count_ptr: *mut i16,
 ) -> SqlReturn {

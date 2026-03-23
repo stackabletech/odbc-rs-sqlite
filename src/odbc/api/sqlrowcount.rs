@@ -9,7 +9,7 @@ use tracing::{debug, error, info};
 /// Returns -1 for SELECT statements or when no statement is active.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLRowCount(
+pub extern "system" fn SQLRowCount(
     statement_handle: *mut c_void,
     row_count_ptr: *mut isize,
 ) -> SqlReturn {

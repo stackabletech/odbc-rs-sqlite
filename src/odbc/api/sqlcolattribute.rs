@@ -8,7 +8,7 @@ use tracing::{debug, error, info};
 /// SQLColAttributeW returns descriptor information for a column in a result set.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLColAttributeW(
+pub extern "system" fn SQLColAttributeW(
     statement_handle: *mut c_void,
     column_number: u16,
     field_identifier: u16,

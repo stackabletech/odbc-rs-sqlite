@@ -10,7 +10,7 @@ use tracing::{debug, error, info};
 /// so that `SQLNumResultCols`, `SQLColAttribute`, etc. work before `SQLExecute`.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLPrepareW(
+pub extern "system" fn SQLPrepareW(
     statement_handle: *mut c_void,
     statement_text: *const u16,
     text_length: i16,

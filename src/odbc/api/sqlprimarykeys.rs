@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLPrimaryKeysW(
+pub extern "system" fn SQLPrimaryKeysW(
     _statement_handle: *mut c_void,
 
     _catalog_name: *const u16,

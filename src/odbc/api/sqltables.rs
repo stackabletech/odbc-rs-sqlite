@@ -6,7 +6,7 @@ use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLTablesW(
+pub extern "system" fn SQLTablesW(
     statement_handle: *mut c_void,
     _catalog_name: *const u16,
     catalog_name_length: i16,

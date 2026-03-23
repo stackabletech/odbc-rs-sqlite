@@ -7,7 +7,7 @@ use tracing::{error, info};
 /// SQLMoreResults returns SQL_NO_DATA — SQLite does not support multiple result sets.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLMoreResults(statement_handle: *mut c_void) -> SqlReturn {
+pub extern "system" fn SQLMoreResults(statement_handle: *mut c_void) -> SqlReturn {
     info!("Checking for additional result sets");
 
     let statement_handle: &mut StatementHandle =

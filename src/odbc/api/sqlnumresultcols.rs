@@ -7,7 +7,7 @@ use tracing::{debug, error, info};
 /// SQLNumResultCols returns the number of columns in a result set.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn SQLNumResultCols(
+pub unsafe extern "system" fn SQLNumResultCols(
     statement_handle: *mut c_void,
     column_count_ptr: *mut i16,
 ) -> SqlReturn {

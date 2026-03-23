@@ -4,7 +4,7 @@ use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLSetConnectAttr(
+pub extern "system" fn SQLSetConnectAttr(
     connection_handle: Pointer,
     attribute: Integer,
     value_ptr: *mut c_void, // TODO maybe char?

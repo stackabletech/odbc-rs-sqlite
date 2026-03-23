@@ -7,7 +7,7 @@ use tracing::{debug, error, info};
 /// SQLExecDirectW prepares and executes an SQL statement in one step.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLExecDirectW(
+pub extern "system" fn SQLExecDirectW(
     statement_handle: *mut c_void,
     statement_text: *const u16,
     text_length: i32,

@@ -7,7 +7,7 @@ use tracing::{debug, error, info};
 /// SQLAllocHandle allocates an environment, connection, statement, or descriptor handle.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLAllocHandle(
+pub extern "system" fn SQLAllocHandle(
     handle_type: SmallInt,
     input_handle: Pointer,
     output_handle: *mut Pointer,

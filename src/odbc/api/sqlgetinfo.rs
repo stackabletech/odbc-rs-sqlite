@@ -17,7 +17,7 @@ const STRING_LENGTH_FOR_UINTEGER: i16 = std::mem::size_of::<u32>() as i16;
 /// `SUCCESS`, `SUCCESS_WITH_INFO`, `ERROR`, or `INVALID_HANDLE`
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetInfo(
+pub extern "system" fn SQLGetInfo(
     connection_handle: *mut c_void,
     info_type: u16,
     info_value_ptr: Pointer,

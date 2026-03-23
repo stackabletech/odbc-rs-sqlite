@@ -20,7 +20,7 @@ use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLConnectW(
+pub extern "system" fn SQLConnectW(
     connection_handle: *mut c_void,
     server_name: *const WChar,
     server_name_length: SmallInt,

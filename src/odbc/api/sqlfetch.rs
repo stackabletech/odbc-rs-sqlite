@@ -9,7 +9,7 @@ use tracing::{debug, error, info};
 /// Returns SQL_NO_DATA when no more rows are available.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLFetch(statement_handle: *mut c_void) -> SqlReturn {
+pub extern "system" fn SQLFetch(statement_handle: *mut c_void) -> SqlReturn {
     info!("Fetching next row");
 
     let statement_handle: &mut StatementHandle =

@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetDiagRecW(
+pub extern "system" fn SQLGetDiagRecW(
     _handle_type: i16,
     _handle: *mut c_void,
     record_number: i16,

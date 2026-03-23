@@ -10,7 +10,7 @@ use tracing::{debug, error, info, warn};
 /// It's critical for preventing memory leaks in ODBC applications.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLFreeHandle(handle_type: i16, handle: *mut c_void) -> SqlReturn {
+pub extern "system" fn SQLFreeHandle(handle_type: i16, handle: *mut c_void) -> SqlReturn {
     info!("Freeing handle of type {}", handle_type);
 
     // Validate handle is not null

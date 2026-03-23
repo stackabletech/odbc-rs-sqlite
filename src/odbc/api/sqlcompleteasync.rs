@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLCompleteAsync(
+pub extern "system" fn SQLCompleteAsync(
     _handle_type: i16,
     _handle: *mut c_void,
     _async_ret_code_ptr: *mut i16,

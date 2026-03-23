@@ -25,7 +25,7 @@ use tracing::{error, info};
 /// It's more flexible than SQLConnect as it accepts a full connection string.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLDriverConnectW(
+pub extern "system" fn SQLDriverConnectW(
     connection_handle: *mut c_void,
     _window_handle: *mut c_void, // HWND - unused in our case as we won't create any dialogs
     in_connection_string: *const WChar,

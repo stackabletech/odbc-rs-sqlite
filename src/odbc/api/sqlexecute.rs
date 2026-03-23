@@ -10,7 +10,7 @@ use tracing::{debug, error, info};
 /// a no-op — it verifies a statement exists and returns SUCCESS.
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLExecute(statement_handle: *mut c_void) -> SqlReturn {
+pub extern "system" fn SQLExecute(statement_handle: *mut c_void) -> SqlReturn {
     info!("SQLExecute");
 
     let statement_handle: &mut StatementHandle =
