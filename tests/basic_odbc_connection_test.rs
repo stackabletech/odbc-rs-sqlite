@@ -14,9 +14,34 @@ use std::process::Command;
 
 const CONNECTION_STRING: &str = "DSN=test_connection";
 
-/// Set up test environment by building driver and configuring ODBC
+/// Creates test_odbc.sqlite from test_data/schema.sql if it does not already exist.
+/// Uses rusqlite directly so there is no dependency on the sqlite3 CLI.
+/// The Once guard prevents a race when multiple tests call this in parallel.
+fn create_test_database() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let db_path = format!("{}/test_odbc.sqlite", manifest_dir);
+
+        if std::path::Path::new(&db_path).exists() {
+            return;
+        }
+
+        let schema = include_str!("../test_data/schema.sql");
+        let conn = rusqlite::Connection::open(&db_path)
+            .expect("Failed to create test_odbc.sqlite");
+        conn.execute_batch(schema)
+            .expect("Failed to apply schema to test_odbc.sqlite");
+    });
+}
+
+/// Builds the driver and writes test_data/odbcinst.ini with the path to the
+/// compiled .so. Must be called before any test that goes through the ODBC DM.
 fn setup_test_environment() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    // Ensure driver is built and ODBC is configured
+    create_test_database();
+
     let output = Command::new("./scripts/build-and-setup.sh")
         .arg("debug")
         .current_dir(env!("CARGO_MANIFEST_DIR"))
@@ -43,7 +68,7 @@ fn test_odbc_environment_creation() {
 
 #[test]
 fn test_odbc_connection_establishment() {
-    //setup_test_environment().expect("Test environment setup failed");
+    setup_test_environment().expect("Test environment setup failed");
 
     // Test basic ODBC connection
     let env = Environment::new().expect("Failed to create ODBC environment");
@@ -64,7 +89,7 @@ fn test_odbc_connection_establishment() {
 
 #[test]
 fn test_list_tables() {
-    //setup_test_environment().expect("Test environment setup failed");
+    setup_test_environment().expect("Test environment setup failed");
 
     // Test basic ODBC connection
     let env = Environment::new().expect("Failed to create ODBC environment");
@@ -141,6 +166,7 @@ fn test_multiple_connections() {
 
 #[test]
 fn test_describe_columns() {
+    setup_test_environment().expect("Test environment setup failed");
     let env = Environment::new().expect("Failed to create ODBC environment");
 
     let connection = env

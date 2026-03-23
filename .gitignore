@@ -1,6 +1,7 @@
 /target
 /deps
 test_odbc.sqlite
+test_data/odbcinst.ini
 lars_notes.md
 .claude/
 ODBC
