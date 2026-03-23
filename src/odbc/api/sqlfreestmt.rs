@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLFreeStmt(_statement_handle: *mut c_void, _option: u16) -> SqlReturn {
+pub extern "system" fn SQLFreeStmt(_statement_handle: *mut c_void, _option: u16) -> SqlReturn {
     info!("SQLFreeStmt");
     SqlReturn::SUCCESS
 }

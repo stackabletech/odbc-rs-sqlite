@@ -1,12 +1,11 @@
-use crate::odbc::implementation::alloc_handles::EnvironmentHandle;
-use crate::odbc::implementation::env_attrs::get_odbc_version;
+use crate::odbc::handles::EnvironmentHandle;
 use crate::odbc::utils::get_from_wrapper;
 use odbc_sys::{EnvironmentAttribute, HandleType, Integer, Pointer, SqlReturn};
 use tracing::{debug, error};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetEnvAttr(
+pub extern "system" fn SQLGetEnvAttr(
     environment_handle: Pointer,
     attribute: Integer,
     value_ptr: Pointer,
@@ -45,7 +44,7 @@ pub extern "C" fn SQLGetEnvAttr(
 
     match attribute {
         EnvironmentAttribute::OdbcVersion => {
-            let odbc_version = get_odbc_version(env);
+            let odbc_version = env.odbc_version();
             unsafe { *(value_ptr as *mut i32) = odbc_version as i32 }
         }
         EnvironmentAttribute::ConnectionPooling => {

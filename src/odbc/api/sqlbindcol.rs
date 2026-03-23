@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLBindCol(
+pub extern "system" fn SQLBindCol(
     _statement_handle: *mut c_void,
     _column_number: u16,
     _target_type: i16,

@@ -4,7 +4,7 @@ use tracing::info;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetCursorNameW(
+pub extern "system" fn SQLGetCursorNameW(
     _statement_handle: *mut c_void,
     _cursor_name: *mut u16,
     _buffer_length: i16,

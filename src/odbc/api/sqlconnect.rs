@@ -12,16 +12,15 @@
 //!      SQLSMALLINT    NameLength3);
 //! ```
 
-use crate::odbc::implementation::alloc_handles::ConnectionHandle;
-use crate::odbc::implementation::connect::impl_connect;
-use crate::odbc::utils::{get_from_wrapper, maybe_utf16_to_string};
+use crate::odbc::handles::{ConnectionHandle, factory};
+use crate::odbc::utils::{get_from_wrapper, get_private_profile_string, maybe_utf16_to_string};
 use odbc_sys::{HandleType, SmallInt, SqlReturn, WChar};
 use std::ffi::c_void;
 use tracing::{error, info};
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLConnectW(
+pub extern "system" fn SQLConnectW(
     connection_handle: *mut c_void,
     server_name: *const WChar,
     server_name_length: SmallInt,
@@ -57,7 +56,28 @@ pub extern "C" fn SQLConnectW(
     let user_name = maybe_utf16_to_string(user_name, user_name_length);
     let authentication = maybe_utf16_to_string(authentication, authentication_length);
 
-    impl_connect(connection_handle, server_name, user_name, authentication);
+    let database = match get_private_profile_string(&server_name, "Database", "odbc.ini", 1024) {
+        Ok(Some(db)) => db,
+        Ok(None) => {
+            error!("Database setting not found for DSN '{}'", server_name);
+            return SqlReturn::ERROR;
+        }
+        Err(e) => {
+            error!("Failed to look up DSN '{}': {}", server_name, e);
+            return SqlReturn::ERROR;
+        }
+    };
 
-    SqlReturn::SUCCESS
+    let _ = (user_name, authentication); // unused by SQLite
+
+    match factory().create(&database) {
+        Ok(conn) => {
+            connection_handle.connection = Some(conn);
+            SqlReturn::SUCCESS
+        }
+        Err(e) => {
+            error!("Failed to open database '{}': {}", database, e);
+            SqlReturn::ERROR
+        }
+    }
 }

@@ -8,7 +8,7 @@ const SQL_API_ODBC3_ALL_FUNCTIONS_SIZE: usize = 250;
 
 #[allow(non_snake_case)]
 #[unsafe(no_mangle)]
-pub extern "C" fn SQLGetFunctions(
+pub extern "system" fn SQLGetFunctions(
     _connection_handle: *mut c_void,
     function_id: u16,
     supported_ptr: &mut USmallInt,

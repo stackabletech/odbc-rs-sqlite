@@ -1,4 +1,5 @@
 mod api;
 mod def;
-mod implementation;
+pub(crate) mod handles;
+pub(crate) mod implementation;
 mod utils;
