@@ -80,8 +80,3 @@ pub enum CDataType {
     SsTime2 = C_TYPES_EXTENDED,
     SsTimestampOffset = C_TYPES_EXTENDED + 1,
 }
-
-#[cfg(windows)]
-pub use CDataType::ULong as UBigInt;
-//#[cfg(not(windows))]
-//pub use CDataType::ULong as Bookmark;
