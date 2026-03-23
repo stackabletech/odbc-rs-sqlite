@@ -10,9 +10,9 @@ use tracing::error;
 pub(crate) struct SqliteDbConnectionFactory;
 
 impl DbConnectionFactory for SqliteDbConnectionFactory {
-    fn create_from_path(&self, path: &str) -> Result<Arc<dyn DbConnection>, String> {
+    fn create(&self, database: &str) -> Result<Arc<dyn DbConnection>, String> {
         let conn = rusqlite::Connection::open_with_flags(
-            path,
+            database,
             OpenFlags::SQLITE_OPEN_READ_WRITE
                 | OpenFlags::SQLITE_OPEN_URI
                 | OpenFlags::SQLITE_OPEN_NO_MUTEX,

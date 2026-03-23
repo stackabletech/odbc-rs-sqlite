@@ -179,7 +179,7 @@ mod tests {
     fn make_connected_dbc_ptr() -> Pointer {
         crate::init_driver();
         let conn = crate::odbc::handles::factory()
-            .create_from_path(":memory:")
+            .create(":memory:")
             .unwrap();
         let ch = ConnectionHandle {
             connection: Some(conn),

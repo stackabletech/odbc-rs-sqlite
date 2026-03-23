@@ -116,7 +116,7 @@ pub extern "C" fn SQLDriverConnectW(
         Some(db_path) => {
             info!("Connecting to database: {}", db_path);
 
-            match factory().create_from_path(&db_path) {
+            match factory().create(&db_path) {
                 Ok(conn) => {
                     connection_handle.connection = Some(conn);
                 }

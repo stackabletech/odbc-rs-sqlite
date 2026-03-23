@@ -32,7 +32,7 @@ pub trait ActiveStatement: Send + Sync {
 /// Creates `DbConnection` instances from a database path.
 /// Register one implementation at startup via `register_factory`.
 pub trait DbConnectionFactory: Send + Sync {
-    fn create_from_path(&self, path: &str) -> Result<Arc<dyn DbConnection>, String>;
+    fn create(&self, database: &str) -> Result<Arc<dyn DbConnection>, String>;
 }
 
 // ─── Global factory registry ─────────────────────────────────────────────────

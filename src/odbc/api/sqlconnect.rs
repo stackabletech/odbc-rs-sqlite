@@ -70,7 +70,7 @@ pub extern "C" fn SQLConnectW(
 
     let _ = (user_name, authentication); // unused by SQLite
 
-    match factory().create_from_path(&database) {
+    match factory().create(&database) {
         Ok(conn) => {
             connection_handle.connection = Some(conn);
             SqlReturn::SUCCESS
